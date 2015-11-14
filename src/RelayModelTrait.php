@@ -1,6 +1,6 @@
 <?php
 
-namespace App\GraphQL\Relay\Traits;
+namespace Nuwave\Relay;
 
 trait RelayModelTrait
 {
