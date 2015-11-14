@@ -24,7 +24,7 @@ class ServiceProvider extends BaseProvider
     public function register()
     {
         $this->commands([
-            Nuwave\Relay\Commands\SchemaCommand::class,
+            \Nuwave\Relay\Commands\SchemaCommand::class,
         ]);
     }
 }
