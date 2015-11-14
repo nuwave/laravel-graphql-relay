@@ -1,7 +1,7 @@
 {
     "name": "nuwave/laravel-graphql-relay",
     "autoload": {
-        "psr-0": {
+        "psr-4": {
             "Nuwave\\Relay\\": "src/"
         }
     },
@@ -9,7 +9,7 @@
         "phpunit/phpunit": "4.*"
     },
     "autoload-dev": {
-        "psr-0": {
+        "psr-4": {
             "Nuwave\\Relay\\Tests\\": "tests/"
         }
     },
