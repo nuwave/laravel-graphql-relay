@@ -24,7 +24,7 @@ abstract class RelayType extends GraphQLType
                 'type' => Type::nonNull(Type::id()),
                 'description' => 'ID of type.',
                 'resolve' => function ($obj) {
-                    return $this->encodeGlobalId(self::class, $this->getIdentifier($obj));
+                    return $this->encodeGlobalId(get_called_class(), $this->getIdentifier($obj));
                 },
             ],
         ]);
