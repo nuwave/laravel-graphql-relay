@@ -12,5 +12,8 @@
         "psr-4": {
             "Nuwave\\Relay\\Tests\\": "tests/"
         }
+    },
+    "require": {
+        "folklore/graphql": "^0.3.3"
     }
 }
