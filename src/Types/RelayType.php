@@ -19,7 +19,7 @@ abstract class RelayType extends GraphQLType
      */
     public function fields()
     {
-        return array_merge($this->baseFields(), $this->getEdges(), [
+        return array_merge($this->relayFields(), $this->getEdges(), [
             'id' => [
                 'type' => Type::nonNull(Type::id()),
                 'description' => 'ID of type.',
@@ -187,7 +187,7 @@ abstract class RelayType extends GraphQLType
      *
      * @return array
      */
-    abstract protected function baseFields();
+    abstract protected function relayFields();
 
     /**
      * Fetch type data by id.
