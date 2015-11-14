@@ -2,10 +2,14 @@
 
 namespace Nuwave\Relay\Types;
 
+use Closure;
 use GraphQL;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Nuwave\Relay\GlobalIdTrait;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Type\Definition\ListOfType;
+use GraphQL\Type\Definition\ResolveInfo;
 use Folklore\GraphQL\Support\Type as GraphQLType;
 
 abstract class RelayType extends GraphQLType
@@ -99,14 +103,22 @@ abstract class RelayType extends GraphQLType
                     'type' => Type::nonNull(Type::boolean()),
                     'description' => 'When paginating forwards, are there more items?',
                     'resolve' => function ($collection, $test) {
-                        return $collection->hasMorePages();
+                        if ($collection instanceof LengthAwarePaginator) {
+                            return $collection->hasMorePages();
+                        }
+
+                        return false;
                     }
                 ],
                 'hasPreviousPage' => [
                     'type' => Type::nonNull(Type::boolean()),
                     'description' => 'When paginating backwards, are there more items?',
                     'resolve' => function ($collection) {
-                        return $collection->currentPage() > 1;
+                        if ($collection instanceof LengthAwarePaginator) {
+                            return $collection->currentPage() > 1;
+                        }
+
+                        return false;
                     }
                 ]
             ]
@@ -122,6 +134,10 @@ abstract class RelayType extends GraphQLType
      */
     protected function edgeType($name, $type)
     {
+        if (!$type instanceof ListOfType) {
+            $type = Type::listOf($type);
+        }
+
         return new ObjectType([
             'name' => ucfirst($name) . 'Edge',
             'fields' => [
@@ -136,7 +152,12 @@ abstract class RelayType extends GraphQLType
                     'type' => Type::nonNull(Type::string()),
                     'description' => 'A cursor for use in pagination.',
                     'resolve' => function ($parent, $args) {
-                        \Log::info('CURSOR_RESOLVE', [$args]);
+                        if ($parent instanceof LengthAwarePaginator) {
+                            $cursor = $parent->count() * $parent->currentPage();
+                            return $cursor;
+                        }
+
+                        return '';
                     }
                 ]
             ]
@@ -146,12 +167,17 @@ abstract class RelayType extends GraphQLType
     /**
      * Create ConnectionType.
      *
+     * @param  Closure $resolve
      * @param  string $name
      * @param  mixed $type
      * @return ObjectType
      */
     protected function connectionType($name, $type)
     {
+        if ($type instanceof ListOfType) {
+            $type = $type->getWrappedType();
+        }
+
         return new ObjectType([
             'name' => ucfirst($name) . 'Connection',
             'fields' => [
@@ -164,8 +190,8 @@ abstract class RelayType extends GraphQLType
                 'pageInfo' => [
                     'type' => Type::nonNull($this->pageInfoType()),
                     'description' => 'Information to aid in pagination.',
-                    'resolve' => function ($edges) {
-                        return $edges;
+                    'resolve' => function ($collection, $args, $info) {
+                        return $collection;
                     }
                 ]
             ]
