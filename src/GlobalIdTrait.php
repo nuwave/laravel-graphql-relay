@@ -26,4 +26,30 @@ trait GlobalIdTrait
     {
         return explode(":", base64_decode($id));
     }
+
+    /**
+     * Get the decoded id.
+     *
+     * @param  string $id
+     * @return string
+     */
+    public function decodedId($id)
+    {
+        list($type, $id) = $this->decodeGlobalId($id);
+
+        return $id;
+    }
+
+    /**
+     * Get the decoded GraphQL Type.
+     *
+     * @param  string $id
+     * @return string
+     */
+    public function decodedType($id)
+    {
+        list($type, $id) = $this->decodeGlobalId($id);
+
+        return $type;
+    }
 }
