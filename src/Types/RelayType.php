@@ -2,6 +2,7 @@
 
 namespace Nuwave\Relay\Types;
 
+use Closure;
 use GraphQL;
 use Folklore\GraphQL\Support\Type as GraphQLType;
 use GraphQL\Type\Definition\Type;
@@ -64,8 +65,11 @@ abstract class RelayType extends GraphQLType
         $edges = [];
 
         foreach ($this->connections() as $name => $edge) {
-            $edgeType = $this->edgeType($name, $edge['type']);
-            $connectionType = $this->connectionType($name, Type::listOf($edgeType));
+            $injectCursor = isset($edge['injectCursor']) ? $edge['injectCursor'] : null;
+            $resolveCursor = isset($edge['resolveCursor']) ? $edge['resolveCursor'] : null;
+
+            $edgeType = $this->edgeType($name, $edge['type'], $resolveCursor);
+            $connectionType = $this->connectionType($name, Type::listOf($edgeType), $injectCursor);
 
             $edges[$name] = [
                 'type' => $connectionType,
@@ -104,10 +108,10 @@ abstract class RelayType extends GraphQLType
      * @param  mixed $type
      * @return ObjectType
      */
-    protected function edgeType($name, $type)
+    protected function edgeType($name, $type, Closure $resolveCursor = null)
     {
-        if (!$type instanceof ListOfType) {
-            $type = Type::listOf($type);
+        if ($type instanceof ListOfType) {
+            $type = $type->getWrappedType();
         }
 
         return new ObjectType([
@@ -116,20 +120,19 @@ abstract class RelayType extends GraphQLType
                 'node' => [
                     'type' => $type,
                     'description' => 'The item at the end of the edge.',
-                    'resolve' => function ($node) {
-                        return $node;
+                    'resolve' => function ($edge, array $args, ResolveInfo $info) {
+                        return $edge;
                     }
                 ],
                 'cursor' => [
                     'type' => Type::nonNull(Type::string()),
                     'description' => 'A cursor for use in pagination.',
-                    'resolve' => function ($parent, $args) {
-                        if ($parent instanceof LengthAwarePaginator) {
-                            $cursor = $parent->count() * $parent->currentPage();
-                            return $cursor;
+                    'resolve' => function ($edge, array $args, ResolveInfo $info) use ($resolveCursor) {
+                        if ($resolveCursor) {
+                            return $resolveCursor($edge, $args, $info);
                         }
 
-                        return '';
+                        return $this->resolveCursor($edge);
                     }
                 ]
             ]
@@ -143,10 +146,10 @@ abstract class RelayType extends GraphQLType
      * @param  mixed $type
      * @return ObjectType
      */
-    protected function connectionType($name, $type)
+    protected function connectionType($name, $type, Closure $injectCursor = null)
     {
-        if ($type instanceof ListOfType) {
-            $type = $type->getWrappedType();
+        if (!$type instanceof ListOfType) {
+            $type = Type::listOf($type);
         }
 
         return new ObjectType([
@@ -154,19 +157,68 @@ abstract class RelayType extends GraphQLType
             'fields' => [
                 'edges' => [
                     'type' => $type,
-                    'resolve' => function ($collection) {
-                        return $collection;
+                    'resolve' => function ($collection, array $args, ResolveInfo $info) use ($injectCursor) {
+                        if ($injectCursor) {
+                            return $injectCursor($collection, $args, $info);
+                        }
+
+                        return $this->injectCursor($collection);
                     }
                 ],
                 'pageInfo' => [
                     'type' => Type::nonNull($this->pageInfoType()),
                     'description' => 'Information to aid in pagination.',
-                    'resolve' => function ($collection, $args, $info) {
+                    'resolve' => function ($collection, array $args, ResolveInfo $info) {
                         return $collection;
                     }
                 ]
             ]
         ]);
+    }
+
+    /**
+     * Inject encoded cursor into collection items.
+     *
+     * @param  mixed $collection
+     * @return mixed
+     */
+    protected function injectCursor($collection)
+    {
+        if ($collection instanceof LengthAwarePaginator) {
+            $page = $collection->currentPage();
+
+            foreach ($collection as $x => &$item) {
+                $cursor = $x * $page;
+                $encodedCursor = $this->encodeGlobalId('arrayconnection', $cursor);
+
+                if (is_array($item)) {
+                    $item['relayCursor'] = $encodedCursor;
+                } else if (is_object($item) && is_array($item->attributes)) {
+                    $item->attributes['relayCursor'] = $encodedCursor;
+                } else {
+                    $item->relayCursor = $encodedCursor;
+                }
+            }
+        }
+
+        return $collection;
+    }
+
+    /**
+     * Resolve encoded relay cursor for item.
+     *
+     * @param  mixed $edge
+     * @return string
+     */
+    protected function resolveCursor($edge)
+    {
+        if (is_array($edge) && isset($edge['relayCursor'])) {
+            return $edge['relayCursor'];
+        } elseif (is_array($edge->attributes)) {
+            return $edge->attributes['relayCursor'];
+        }
+
+        return $edge->relayCursor;
     }
 
     /**
