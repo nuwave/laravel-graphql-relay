@@ -2,15 +2,14 @@
 
 namespace Nuwave\Relay\Types;
 
-use Closure;
 use GraphQL;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Nuwave\Relay\GlobalIdTrait;
+use Folklore\GraphQL\Support\Type as GraphQLType;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\ResolveInfo;
-use Folklore\GraphQL\Support\Type as GraphQLType;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Nuwave\Relay\GlobalIdTrait;
 
 abstract class RelayType extends GraphQLType
 {
@@ -95,34 +94,7 @@ abstract class RelayType extends GraphQLType
      */
     protected function pageInfoType()
     {
-        return new ObjectType([
-            'name' => 'PageInfo',
-            'description' => 'Information about pagination in a connection.',
-            'fields' => [
-                'hasNextPage' => [
-                    'type' => Type::nonNull(Type::boolean()),
-                    'description' => 'When paginating forwards, are there more items?',
-                    'resolve' => function ($collection, $test) {
-                        if ($collection instanceof LengthAwarePaginator) {
-                            return $collection->hasMorePages();
-                        }
-
-                        return false;
-                    }
-                ],
-                'hasPreviousPage' => [
-                    'type' => Type::nonNull(Type::boolean()),
-                    'description' => 'When paginating backwards, are there more items?',
-                    'resolve' => function ($collection) {
-                        if ($collection instanceof LengthAwarePaginator) {
-                            return $collection->currentPage() > 1;
-                        }
-
-                        return false;
-                    }
-                ]
-            ]
-        ]);
+        return GraphQL::type('pageInfo');
     }
 
     /**
@@ -167,7 +139,6 @@ abstract class RelayType extends GraphQLType
     /**
      * Create ConnectionType.
      *
-     * @param  Closure $resolve
      * @param  string $name
      * @param  mixed $type
      * @return ObjectType
