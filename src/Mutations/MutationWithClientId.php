@@ -2,6 +2,8 @@
 
 namespace Nuwave\Relay\Mutations;
 
+use Validator;
+use Folklore\GraphQL\Error\ValidationError;
 use Nuwave\Relay\GlobalIdTrait;
 use Folklore\GraphQL\Support\Mutation;
 use GraphQL\Type\Definition\Type;
@@ -28,7 +30,7 @@ abstract class MutationWithClientId extends Mutation
     public function type()
     {
         return new ObjectType([
-            'name' => ucfirst($this->getName()) . 'Payload',
+            'name' => ucfirst($this->name()) . 'Payload',
             'fields' => array_merge($this->outputFields(), [
                     'clientMutationId' => [
                         'type' => Type::nonNull(Type::string())
@@ -45,7 +47,7 @@ abstract class MutationWithClientId extends Mutation
     public function args()
     {
         $inputType = new InputObjectType([
-            'name' => ucfirst($this->getName()) . 'Input',
+            'name' => ucfirst($this->name()) . 'Input',
             'fields' => array_merge($this->inputFields(), [
                 'clientMutationId' => [
                     'type' => Type::nonNull(Type::string())
@@ -71,16 +73,78 @@ abstract class MutationWithClientId extends Mutation
     public function resolve($_, $args, ResolveInfo $info)
     {
         if ($this->mutatesRelayType && isset($args['input']['id'])) {
-            list($type, $id) = $this->decodeGlobalId($args['input']['id']);
-
-            $args['input']['id'] = $id;
+            $args['input']['id'] = $this->decodeRelayId($args['input']['id']);
         }
 
+        $this->validateMutation();
         $payload = $this->mutateAndGetPayload($args['input'], $info);
 
         return array_merge($payload, [
             'clientMutationId' => $args['input']['clientMutationId']
         ]);
+    }
+
+    /**
+     * Get rules for relay mutation.
+     *
+     * @return array
+     */
+    public function getRules()
+    {
+        $arguments = func_get_args();
+
+        $rules = call_user_func_array([$this, 'rules'], $arguments);
+        $argsRules = [];
+        foreach ($this->inputFields() as $name => $arg) {
+            if (isset($arg['rules'])) {
+                if (is_callable($arg['rules'])) {
+                    $argsRules[$name] = call_user_func_array($arg['rules'], $arguments);
+                } else {
+                    $argsRules[$name] = $arg['rules'];
+                }
+            }
+        }
+
+        return array_merge($argsRules, $rules);
+    }
+
+    /**
+     * Get resolver for relay mutation.
+     *
+     * @return mixed
+     */
+    protected function getResolver()
+    {
+        if (!method_exists($this, 'resolve')) {
+            return null;
+        }
+
+        $resolver = array($this, 'resolve');
+
+        return function () use ($resolver) {
+            $arguments = func_get_args();
+
+            return call_user_func_array($resolver, $arguments);
+        };
+    }
+
+    /**
+     * Validate relay mutation.
+     *
+     * @throws ValidationError
+     * @return void
+     */
+    protected function validateMutation()
+    {
+        $rules = call_user_func_array([$this, 'getRules'], $args);
+
+        if (sizeof($rules)) {
+            $validator = Validator::make($args['input'], $rules);
+
+            if ($validator->fails()) {
+                throw with(new ValidationError('validation'))->setValidator($validator);
+            }
+        }
     }
 
     /**
@@ -111,5 +175,5 @@ abstract class MutationWithClientId extends Mutation
      *
      * @return string
      */
-    abstract protected function getName();
+    abstract protected function name();
 }
