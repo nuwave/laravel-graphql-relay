@@ -76,7 +76,7 @@ abstract class MutationWithClientId extends Mutation
             $args['input']['id'] = $this->decodeRelayId($args['input']['id']);
         }
 
-        $this->validateMutation();
+        $this->validateMutation($args);
         $payload = $this->mutateAndGetPayload($args['input'], $info);
 
         return array_merge($payload, [
@@ -131,10 +131,11 @@ abstract class MutationWithClientId extends Mutation
     /**
      * Validate relay mutation.
      *
+     * @param  array $args
      * @throws ValidationError
      * @return void
      */
-    protected function validateMutation()
+    protected function validateMutation(array $args)
     {
         $rules = call_user_func_array([$this, 'getRules'], $args);
 
