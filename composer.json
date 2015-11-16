@@ -1,5 +1,15 @@
 {
     "name": "nuwave/laravel-graphql-relay",
+    "description": "Adds relay specifications to laravel graphql server",
+    "keywords": ["laravel", "relay", "graphql", "react"],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Christopher Moore",
+            "email": "chris@nuwavecommerce.com"
+        }
+    ],
     "autoload": {
         "psr-4": {
             "Nuwave\\Relay\\": "src/"
