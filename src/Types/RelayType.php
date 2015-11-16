@@ -10,6 +10,7 @@ use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\ResolveInfo;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Nuwave\Relay\GlobalIdTrait;
 
 abstract class RelayType extends GraphQLType
@@ -23,7 +24,7 @@ abstract class RelayType extends GraphQLType
      */
     public function fields()
     {
-        return array_merge($this->relayFields(), $this->getEdges(), [
+        return array_merge($this->relayFields(), $this->getConnections(), [
             'id' => [
                 'type' => Type::nonNull(Type::id()),
                 'description' => 'ID of type.',
@@ -60,7 +61,7 @@ abstract class RelayType extends GraphQLType
      *
      * @return array
      */
-    public function getEdges()
+    public function getConnections()
     {
         $edges = [];
 
@@ -81,10 +82,28 @@ abstract class RelayType extends GraphQLType
                     ],
                     'after' => [
                         'name' => 'after',
-                        'type' => Type::int()
+                        'type' => Type::string()
                     ]
                 ],
-                'resolve' => $edge['resolve']
+                'resolve' => isset($edge['resolve']) ? $edge['resolve'] : function ($collection, array $args, ResolveInfo $info) use ($name) {
+                    $items = $collection->getAttribute($name);
+
+                    if (isset($args['first'])) {
+                        $total = $items->count();
+                        $first = $args['first'];
+                        $after = $this->decodeCursor($args);
+                        $currentPage = $first && $after ? floor(($first + $after) / $first) : 1;
+
+                        return new Paginator(
+                            $items->slice($after)->take($first),
+                            $total,
+                            $first,
+                            $currentPage
+                        );
+                    }
+
+                    return $items;
+                }
             ];
         }
 
@@ -188,7 +207,7 @@ abstract class RelayType extends GraphQLType
             $page = $collection->currentPage();
 
             foreach ($collection as $x => &$item) {
-                $cursor = $x * $page;
+                $cursor = ($x + 1) * $page;
                 $encodedCursor = $this->encodeGlobalId('arrayconnection', $cursor);
 
                 if (is_array($item)) {
@@ -219,6 +238,28 @@ abstract class RelayType extends GraphQLType
         }
 
         return $edge->relayCursor;
+    }
+
+    /**
+     * Decode cursor from query arguments.
+     *
+     * @param  array  $args
+     * @return integer
+     */
+    public function decodeCursor(array $args)
+    {
+        return isset($args['after']) ? $this->getCursorId($args['after']) : 0;
+    }
+
+    /**
+     * Get id from encoded cursor.
+     *
+     * @param  string $cursor
+     * @return integer
+     */
+    protected function getCursorId($cursor)
+    {
+        return (int)$this->decodeRelayId($cursor);
     }
 
     /**
