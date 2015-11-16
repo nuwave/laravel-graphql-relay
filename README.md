@@ -48,3 +48,5 @@ To generate a ```schema.json``` file (used with the [Babel Relay Plugin](https:/
 ```php
 php artisan relay:schema
 ```
+
+For additional documentation, please read the [Wiki](https://github.com/nuwave/laravel-graphql-relay/wiki/1.-GraphQL-and-Relay)
