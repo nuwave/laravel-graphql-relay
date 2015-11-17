@@ -1,6 +1,6 @@
 <?php
 
-namespace Nuwave\Relay\Tests\Assets;
+namespace Nuwave\Relay\Tests\Assets\Data;
 
 class StarWarsData
 {

@@ -66,6 +66,7 @@ abstract class BaseTest extends \Orchestra\Testbench\TestCase
             'schema' => [
                 'query' => [
                     'node' => \Nuwave\Relay\Node\NodeQuery::class,
+                    'humanByName' => \Nuwave\Relay\Tests\Assets\Queries\HumanByName::class,
                 ],
                 'mutation' => [
 
@@ -74,7 +75,7 @@ abstract class BaseTest extends \Orchestra\Testbench\TestCase
             'types' => [
                 'node' => \Nuwave\Relay\Node\NodeType::class,
                 'pageInfo' => \Nuwave\Relay\Types\PageInfoType::class,
-                'human' => \Nuwave\Relay\Tests\Assets\HumanType::class,
+                'human' => \Nuwave\Relay\Tests\Assets\Types\HumanType::class,
             ]
         ]);
     }

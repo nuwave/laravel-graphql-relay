@@ -1,8 +1,9 @@
 <?php
 
-namespace Nuwave\Relay\Tests\Assets;
+namespace Nuwave\Relay\Tests\Assets\Types;
 
 use Nuwave\Relay\Types\RelayType;
+use Nuwave\Relay\Tests\Assets\Data\StarWarsData;
 use GraphQL\Type\Definition\Type;
 
 class HumanType extends RelayType
@@ -42,6 +43,9 @@ class HumanType extends RelayType
     {
         return [
             'name' => [
+                'type' => Type::string()
+            ],
+            'homePlanet' => [
                 'type' => Type::string()
             ]
         ];
