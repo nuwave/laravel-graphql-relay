@@ -32,7 +32,7 @@ class NodeQuery extends Query
         return [
             'id' => [
                 'name' => 'id',
-                'type' => Type::nonNull(Type::string())
+                'type' => Type::nonNull(Type::id())
             ]
         ];
     }
