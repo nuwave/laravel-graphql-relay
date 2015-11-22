@@ -7,7 +7,7 @@ class IntrospectionTest extends BaseTest
     /**
      * @test
      */
-    public function itAcceptsIntrospectionRequestForNodeInterface()
+    public function itAcceptsIntrospectionForNodeInterface()
     {
         $query = '{
           __type(name: "Node") {
@@ -50,7 +50,7 @@ class IntrospectionTest extends BaseTest
     /**
      * @test
      */
-    public function itAcceptsIntrospectionRequestForNodeQuery()
+    public function itAcceptsIntrospectionForNodeQuery()
     {
         $query = '{
           __schema {
