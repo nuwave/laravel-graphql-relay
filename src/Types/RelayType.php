@@ -11,6 +11,8 @@ use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\ResolveInfo;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Nuwave\Relay\GlobalIdTrait;
 
 abstract class RelayType extends GraphQLType
@@ -86,7 +88,15 @@ abstract class RelayType extends GraphQLType
                     ]
                 ],
                 'resolve' => isset($edge['resolve']) ? $edge['resolve'] : function ($collection, array $args, ResolveInfo $info) use ($name) {
-                    $items = $collection->getAttribute($name);
+                    $items = [];
+
+                    if ($collection instanceof Model) {
+                        $items = $collection->getAttribute($name);
+                    } else if (is_object($collection) && method_exists($collection, 'get')) {
+                        $items = $collection->get($name);
+                    } else if (is_array($collection) && isset($collection[$name])) {
+                        $items = new Collection($collection[$name]);
+                    }
 
                     if (isset($args['first'])) {
                         $total = $items->count();
@@ -102,7 +112,11 @@ abstract class RelayType extends GraphQLType
                         );
                     }
 
-                    return $items;
+                    return new Paginator(
+                        $items,
+                        count($items),
+                        count($items)
+                    );
                 }
             ];
         }
