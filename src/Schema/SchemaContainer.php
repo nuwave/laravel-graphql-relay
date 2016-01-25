@@ -3,7 +3,7 @@
 namespace Nuwave\Relay\Schema;
 
 use Closure;
-use Illuminate\Support\Collection;
+use Nuwave\Relay\Schema\FieldCollection as Collection;
 use Nuwave\Relay\Schema\Field;
 
 class SchemaContainer
@@ -200,9 +200,9 @@ class SchemaContainer
      */
     public function transformFields(Collection $collection)
     {
-        return $collection->transform(function ($query, $key) {
+        return $collection->map(function ($field) {
             return [
-                $query->name => $query->getAttributes()
+                $field->name => $field->getAttributes()
             ];
         })->collapse();
     }
