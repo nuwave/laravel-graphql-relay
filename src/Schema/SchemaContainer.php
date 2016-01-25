@@ -23,6 +23,13 @@ class SchemaContainer
     protected $queries;
 
     /**
+     * Type collection.
+     *
+     * @var Collection
+     */
+    protected $types;
+
+    /**
      * Schema middleware stack.
      *
      * @var array
@@ -45,6 +52,7 @@ class SchemaContainer
     {
         $this->mutations = new Collection;
         $this->queries = new Collection;
+        $this->types = new Collection;
     }
 
     /**
@@ -52,16 +60,11 @@ class SchemaContainer
      *
      * @param string $name
      * @param array $options
+     * @return Field
      */
     public function mutation($name, $namespace)
     {
-        $class = empty(trim($this->namespace)) ? $namespace : trim($this->namespace, '\\') . '\\' . $namespace;
-
-        $mutation = new Field($name, $class);
-
-        if ($this->hasMiddlewareStack()) {
-            $mutation->addMiddleware($this->middlewareStack);
-        }
+        $mutation = $this->createField($name, $namespace);
 
         $this->mutations->push($mutation);
 
@@ -73,20 +76,60 @@ class SchemaContainer
      *
      * @param string $name
      * @param array $options
+     * @return Field
      */
     public function query($name, $namespace)
     {
-        $class = empty(trim($this->namespace)) ? $namespace : trim($this->namespace, '\\') . '\\' . $namespace;
-
-        $query = new Field($name, $class);
-
-        if ($this->hasMiddlewareStack()) {
-            $query->addMiddleware($this->middlewareStack);
-        }
+        $query = $this->createField($name, $namespace);
 
         $this->queries->push($query);
 
         return $query;
+    }
+
+    /**
+     * Add type to collection.
+     *
+     * @param  string $name
+     * @param  string $namespace
+     * @return Field
+     */
+    public function type($name, $namespace)
+    {
+        $type = $this->createField($name, $namespace);
+
+        $this->types->push($type);
+
+        return $type;
+    }
+
+    /**
+     * Get class name.
+     *
+     * @param  string $namespace
+     * @return string
+     */
+    protected function getClassName($namespace)
+    {
+        return empty(trim($this->namespace)) ? $namespace : trim($this->namespace, '\\') . '\\' . $namespace;
+    }
+
+    /**
+     * Get field and attach necessary middleware.
+     *
+     * @param  string $name
+     * @param  string $namespace
+     * @return Field
+     */
+    protected function createField($name, $namespace)
+    {
+        $field = new Field($name, $this->getClassName($namespace));
+
+        if ($this->hasMiddlewareStack()) {
+            $field->addMiddleware($this->middlewareStack);
+        }
+
+        return $field;
     }
 
     /**
@@ -126,11 +169,7 @@ class SchemaContainer
      */
     public function getMutations()
     {
-        return $this->mutations->transform(function ($mutation, $key) {
-            return [
-                $mutation->name => $mutation->getAttributes()
-            ];
-        })->collapse();
+        return $this->transformFields($this->mutations);
     }
 
     /**
@@ -140,7 +179,28 @@ class SchemaContainer
      */
     public function getQueries()
     {
-        return $this->queries->transform(function ($query, $key) {
+        return $this->transformFields($this->queries);
+    }
+
+    /**
+     * Get queries.
+     *
+     * @return Collection
+     */
+    public function getTypes()
+    {
+        return $this->transformFields($this->types);
+    }
+
+    /**
+     * Transform fields into collapsed collection.
+     *
+     * @param  Collection $collection
+     * @return Collection
+     */
+    public function transformFields(Collection $collection)
+    {
+        return $collection->transform(function ($query, $key) {
             return [
                 $query->name => $query->getAttributes()
             ];
