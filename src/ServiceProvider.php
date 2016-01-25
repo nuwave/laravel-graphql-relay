@@ -15,8 +15,10 @@ class ServiceProvider extends BaseProvider
     public function boot()
     {
         $this->publishes([__DIR__ . '/../config/config.php' => config_path('relay.php')]);
+        $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'relay');
 
         $this->registerSchema();
+        $this->setConfig();
     }
 
     /**
@@ -31,12 +33,10 @@ class ServiceProvider extends BaseProvider
         ]);
 
         $this->app->singleton('relay', function ($app) {
-            return new SchemaContainer($app);
+            return new SchemaContainer;
         });
 
         $this->app->alias('relay', SchemaContainer::class);
-
-        $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'relay');
     }
 
     /**
@@ -46,9 +46,28 @@ class ServiceProvider extends BaseProvider
      */
     protected function registerSchema()
     {
-        $namespace = config('relay.namespace');
         $register = config('relay.schema');
 
-        $register($namespace);
+        $register();
+    }
+
+    /**
+     * Set configuration variables.
+     *
+     * @return void
+     */
+    protected function setConfig()
+    {
+        $schema = $this->app['relay'];
+
+        $mutations = config('graphql.schema.mutation', []);
+        $queries = config('graphql.schema.query', []);
+        $types = config('graphql.type', []);
+
+        config([
+            'graphql.schema.mutation' => array_merge($mutations, $schema->getMutations()->config()),
+            'graphql.schema.query' => array_merge($queries, $schema->getQueries()->config()),
+            'graphql.type' => array_merge($types, $schema->getTypes()->config())
+        ]);
     }
 }
