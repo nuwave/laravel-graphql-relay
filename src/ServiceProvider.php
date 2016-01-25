@@ -62,12 +62,12 @@ class ServiceProvider extends BaseProvider
 
         $mutations = config('graphql.schema.mutation', []);
         $queries = config('graphql.schema.query', []);
-        $types = config('graphql.type', []);
+        $types = config('graphql.types', []);
 
         config([
             'graphql.schema.mutation' => array_merge($mutations, $schema->getMutations()->config()),
             'graphql.schema.query' => array_merge($queries, $schema->getQueries()->config()),
-            'graphql.type' => array_merge($types, $schema->getTypes()->config())
+            'graphql.types' => array_merge($types, $schema->getTypes()->config())
         ]);
     }
 }
