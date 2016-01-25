@@ -14,7 +14,7 @@ class ServiceProvider extends BaseProvider
      */
     public function boot()
     {
-        $this->publishes([__DIR__ . '../config/config.php' => config_path('relay.php')]);
+        $this->publishes([__DIR__ . '/../config/config.php' => config_path('relay.php')]);
 
         $this->registerSchema();
     }
@@ -36,7 +36,7 @@ class ServiceProvider extends BaseProvider
 
         $this->app->alias('relay', SchemaContainer::class);
 
-        $this->mergeConfigFrom(__DIR__ . '../config/config.php', 'relay');
+        $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'relay');
     }
 
     /**

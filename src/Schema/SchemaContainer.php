@@ -4,7 +4,7 @@ namespace Nuwave\Relay\Schema;
 
 use Closure;
 use Illuminate\Support\Collection;
-use Nuwave\Relay\Schema\SchemaField;
+use Nuwave\Relay\Schema\Field;
 
 class SchemaContainer
 {
@@ -57,7 +57,7 @@ class SchemaContainer
     {
         $class = empty(trim($this->namespace)) ? $namespace : trim($this->namespace, '\\') . '\\' . $namespace;
 
-        $mutation = new SchemaField($name, $class);
+        $mutation = new Field($name, $class);
 
         if ($this->hasMiddlewareStack()) {
             $mutation->addMiddleware($this->middlewareStack);
@@ -78,7 +78,7 @@ class SchemaContainer
     {
         $class = empty(trim($this->namespace)) ? $namespace : trim($this->namespace, '\\') . '\\' . $namespace;
 
-        $query = new SchemaField($name, $class);
+        $query = new Field($name, $class);
 
         if ($this->hasMiddlewareStack()) {
             $query->addMiddleware($this->middlewareStack);
