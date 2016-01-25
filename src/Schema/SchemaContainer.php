@@ -169,7 +169,7 @@ class SchemaContainer
      */
     public function getMutations()
     {
-        return $this->transformFields($this->mutations);
+        return $this->mapFields($this->mutations);
     }
 
     /**
@@ -179,7 +179,7 @@ class SchemaContainer
      */
     public function getQueries()
     {
-        return $this->transformFields($this->queries);
+        return $this->mapFields($this->queries);
     }
 
     /**
@@ -189,7 +189,7 @@ class SchemaContainer
      */
     public function getTypes()
     {
-        return $this->transformFields($this->types);
+        return $this->mapFields($this->types);
     }
 
     /**
@@ -198,7 +198,7 @@ class SchemaContainer
      * @param  Collection $collection
      * @return Collection
      */
-    public function transformFields(Collection $collection)
+    public function mapFields(Collection $collection)
     {
         return $collection->map(function ($field) {
             return [
