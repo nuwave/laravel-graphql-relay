@@ -12,10 +12,11 @@ trait MutationTestTrait
      *
      * @param  string $mutationName
      * @param  array  $input
-     * @param  array $outputFields
+     * @param  array  $outputFields
+     * @param  array  $headers
      * @return $this
      */
-    public function mutate($mutationName, array $input, array $outputFields = [])
+    public function mutate($mutationName, array $input, array $outputFields = [], array $headers = [])
     {
         $query = $this->generateMutationQuery(
             $mutationName,
@@ -27,7 +28,7 @@ trait MutationTestTrait
         return $this->post('graphql', [
             'query'     => $query,
             'variables' => $variables
-        ]);
+        ], $headers);
     }
 
     /**
