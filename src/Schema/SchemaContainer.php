@@ -208,14 +208,54 @@ class SchemaContainer
     }
 
     /**
+     * Find by operation type and name.
+     *
+     * @param  string $name
+     * @param  string $operation
+     * @return array
+     */
+    public function find($name, $operation = 'query')
+    {
+        if ($operation == 'mutation') {
+            return $this->findMutation($name);
+        } elseif ($operation == 'type') {
+            return $this->findType($name);
+        }
+
+        return $this->findQuery($name);
+    }
+
+    /**
      * Find mutation by name.
      *
      * @param  string $name
      * @return array
      */
-    public function find($name)
+    public function findMutation($name)
     {
         return $this->getMutations()->pull($name);
+    }
+
+    /**
+     * Find query by name.
+     *
+     * @param  string $name
+     * @return array
+     */
+    public function findQuery($name)
+    {
+        return $this->getQueries()->pull($name);
+    }
+
+    /**
+     * Find type by name.
+     *
+     * @param  string $name
+     * @return array
+     */
+    public function findType($name)
+    {
+        return $this->getTypes()->pull($name);
     }
 
     /**
