@@ -31,23 +31,25 @@ trait RelayMiddleware
             $params = json_decode($params, true);
         }
 
-        $context      = Context::get($schema, $query, null, $params);
-        $operation    = $context->operation->operation;
-        $selectionSet = $context->operation->selectionSet->selections;
+        if ($context = Context::get($schema, $query, null, $params)) {
+            $context      = Context::get($schema, $query, null, $params);
+            $operation    = $context->operation->operation;
+            $selectionSet = $context->operation->selectionSet->selections;
 
-        foreach ($selectionSet as $selection) {
-            if (is_object($selection) && $selection instanceof \GraphQL\Language\AST\Field) {
-                try {
-                    $schema = $relay->find(
-                        $selection->name->value,
-                        $context->operation->operation
-                    );
+            foreach ($selectionSet as $selection) {
+                if (is_object($selection) && $selection instanceof \GraphQL\Language\AST\Field) {
+                    try {
+                        $schema = $relay->find(
+                            $selection->name->value,
+                            $context->operation->operation
+                        );
 
-                    if (isset($schema['middleware']) && !empty($schema['middleware'])) {
-                        $this->relayMiddleware = array_merge($this->relayMiddleware, $schema['middleware']);
+                        if (isset($schema['middleware']) && !empty($schema['middleware'])) {
+                            $this->relayMiddleware = array_merge($this->relayMiddleware, $schema['middleware']);
+                        }
+                    } catch (\Exception $e) {
+                        continue;
                     }
-                } catch (\Exception $e) {
-                    continue;
                 }
             }
         }
