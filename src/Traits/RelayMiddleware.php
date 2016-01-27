@@ -3,7 +3,8 @@
 namespace Nuwave\Relay\Traits;
 
 use Illuminate\Http\Request;
-use Nuwave\Relay\Context;
+use GraphQL\Language\Source;
+use GraphQL\Language\Parser;
 
 trait RelayMiddleware
 {
@@ -23,26 +24,18 @@ trait RelayMiddleware
     public function queryMiddleware(Request $request)
     {
         $relay  = app('relay');
-        $schema = app('graphql')->schema();
-        $query  = $request->get('query');
-        $params = $request->get('variables');
+        $source = new Source($request->get('query', 'GraphQL request'));
+        $ast    = Parser::parse($source);
 
-        if (is_string($params)) {
-            $params = json_decode($params, true);
-        }
-
-        if ($context = Context::get($schema, $query, null, $params)) {
-            $context      = Context::get($schema, $query, null, $params);
-            $operation    = $context->operation->operation;
-            $selectionSet = $context->operation->selectionSet->selections;
+        if (isset($ast->definitions[0])) {
+            $d            = $ast->definitions[0];
+            $operation    = $d->operation ?: 'query';
+            $selectionSet = $d->selectionSet->selections;
 
             foreach ($selectionSet as $selection) {
                 if (is_object($selection) && $selection instanceof \GraphQL\Language\AST\Field) {
                     try {
-                        $schema = $relay->find(
-                            $selection->name->value,
-                            $context->operation->operation
-                        );
+                        $schema = $relay->find($selection->name->value, $operation);
 
                         if (isset($schema['middleware']) && !empty($schema['middleware'])) {
                             $this->relayMiddleware = array_merge($this->relayMiddleware, $schema['middleware']);
