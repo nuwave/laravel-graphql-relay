@@ -10,11 +10,6 @@
 */
 
 return [
-    // The path where you published your graphql.php file
-    // https://github.com/Folkloreatelier/laravel-graphql#installation-1
-    'graphql_config' => config_path('graphql.php'),
-
-    // Add your mutations and queries here.
     'schema' => function () {
         Relay::group(['namespace' => 'Nuwave\\Relay'], function () {
             Relay::group(['namespace' => 'Node'], function () {
