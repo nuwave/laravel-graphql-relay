@@ -10,7 +10,7 @@ You must then modify your composer.json file and run composer update to include 
 
 ```json
 "require": {
-    "nuwave/laravel-graphql-relay": "0.1.*"
+    "nuwave/laravel-graphql-relay": "0.2.*"
 }
 ```
 
