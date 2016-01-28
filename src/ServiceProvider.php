@@ -2,6 +2,7 @@
 
 namespace Nuwave\Relay;
 
+use Nuwave\Relay\Schema\Parser;
 use Nuwave\Relay\Schema\SchemaContainer;
 use Illuminate\Support\ServiceProvider as BaseProvider;
 
@@ -33,7 +34,7 @@ class ServiceProvider extends BaseProvider
         ]);
 
         $this->app->singleton('relay', function ($app) {
-            return new SchemaContainer;
+            return new SchemaContainer(new Parser);
         });
 
         $this->app->alias('relay', SchemaContainer::class);
