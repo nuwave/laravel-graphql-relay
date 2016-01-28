@@ -2,7 +2,7 @@
 
 namespace Nuwave\Relay\Schema;
 
-use GraphQL\Language\AST\ASTField;
+use GraphQL\Language\AST\Field as ASTField;
 
 class Connection
 {
