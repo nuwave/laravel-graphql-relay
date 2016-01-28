@@ -2,7 +2,7 @@
 
 namespace Nuwave\Relay\Schema;
 
-use GraphQL\Language\AST\Field;
+use GraphQL\Language\AST\ASTField;
 
 class Connection
 {
@@ -54,9 +54,9 @@ class Connection
     /**
      * Set arguments of selection.
      *
-     * @param Field $field
+     * @param ASTField $field
      */
-    public function setArguments(Field $field)
+    public function setArguments(ASTField $field)
     {
         if ($field->arguments) {
             foreach ($field->arguments as $argument) {
