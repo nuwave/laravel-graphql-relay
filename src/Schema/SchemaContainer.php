@@ -102,6 +102,75 @@ class SchemaContainer
     }
 
     /**
+     * Check to see if field is a parent.
+     *
+     * @param  string  $name
+     * @return boolean
+     */
+    public function isParent($name)
+    {
+        foreach ($this->connections as $connection) {
+            if ($this->hasPath($connection, $name)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get list of connections in query that belong
+     * to parent.
+     *
+     * @param  string $parent
+     * @param  array  $connections
+     * @return array
+     */
+    public function connectionsInRequest($parent, array $connections)
+    {
+        $queryConnections = [];
+
+        foreach ($this->connections as $connection) {
+            if ($this->hasPath($connection, $parent) && isset($connections[$connection->name])) {
+                $queryConnections[] = $connections[$connection->name];
+            }
+        }
+
+        return $queryConnections;
+    }
+
+    /**
+     * Get arguments of connection.
+     *
+     * @param  string $name
+     * @return array
+     */
+    public function connectionArguments($name)
+    {
+        $connection = array_first($this->connections, function ($key, $connection) use ($name) {
+            return $connection->name == $name;
+        });
+
+        if ($connection) {
+            return $connection->arguments;
+        }
+
+        return [];
+    }
+
+    /**
+     * Determine if connection has parent in it's path.
+     *
+     * @param  Connection $connection
+     * @param  string     $parent
+     * @return boolean
+     */
+    protected function hasPath(Connection $connection, $parent)
+    {
+        return preg_match("/{$parent}./", $connection->path);
+    }
+
+    /**
      * Add mutation to collection.
      *
      * @param string $name

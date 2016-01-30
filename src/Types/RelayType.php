@@ -4,6 +4,7 @@ namespace Nuwave\Relay\Types;
 
 use Closure;
 use GraphQL;
+use GraphQL\Language\AST\ListType;
 use Folklore\GraphQL\Support\Type as GraphQLType;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\ObjectType;
@@ -14,10 +15,18 @@ use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Nuwave\Relay\GlobalIdTrait;
+use Nuwave\Relay\Schema\SchemaContainer;
 
 abstract class RelayType extends GraphQLType
 {
     use GlobalIdTrait;
+
+    /**
+     * Schema container.
+     *
+     * @var SchemaContainer
+     */
+    protected $container;
 
     /**
      * List of fields with global identifier.
@@ -87,41 +96,87 @@ abstract class RelayType extends GraphQLType
                         'type' => Type::string()
                     ]
                 ],
-                'resolve' => isset($edge['resolve']) ? $edge['resolve'] : function ($collection, array $args, ResolveInfo $info) use ($name) {
-                    $items = [];
+                'resolve' => function ($parent, array $args, ResolveInfo $info) use ($name, $edge) {
+                    $collection = isset($edge['resolve']) ? $edge['resolve'] : $this->autoResolve($parent, $args, $info, $name);
 
-                    if ($collection instanceof Model) {
-                        $items = $collection->getAttribute($name);
-                    } else if (is_object($collection) && method_exists($collection, 'get')) {
-                        $items = $collection->get($name);
-                    } else if (is_array($collection) && isset($collection[$name])) {
-                        $items = new Collection($collection[$name]);
-                    }
+                    $this->autoLoad($collection, $edge, $name);
 
-                    if (isset($args['first'])) {
-                        $total = $items->count();
-                        $first = $args['first'];
-                        $after = $this->decodeCursor($args);
-                        $currentPage = $first && $after ? floor(($first + $after) / $first) : 1;
-
-                        return new Paginator(
-                            $items->slice($after)->take($first),
-                            $total,
-                            $first,
-                            $currentPage
-                        );
-                    }
-
-                    return new Paginator(
-                        $items,
-                        count($items),
-                        count($items)
-                    );
+                    return $collection;
                 }
             ];
         }
 
         return $edges;
+    }
+
+    /**
+     * Auto resolve the connection.
+     *
+     * @param  mixed       $parent
+     * @param  array       $args
+     * @param  ResolveInfo $info
+     * @param  string      $name
+     * @return Paginator
+     */
+    protected function autoResolve($parent, array $args, ResolveInfo $info, $name = '')
+    {
+        $items = [];
+
+        if ($parent instanceof Model) {
+            $items = $parent->getAttribute($name);
+        } else if (is_object($parent) && method_exists($parent, 'get')) {
+            $items = $parent->get($name);
+        } else if (is_array($parent) && isset($parent[$name])) {
+            $items = new Collection($parent[$name]);
+        }
+
+        if (isset($args['first'])) {
+            $total = $items->count();
+            $first = $args['first'];
+            $after = $this->decodeCursor($args);
+            $currentPage = $first && $after ? floor(($first + $after) / $first) : 1;
+
+            return new Paginator(
+                $items->slice($after)->take($first),
+                $total,
+                $first,
+                $currentPage
+            );
+        }
+
+        return new Paginator(
+            $items,
+            count($items),
+            count($items)
+        );
+    }
+
+    /**
+     * Auto load the fields connection(s).
+     *
+     * @param  Paginator $collection
+     * @param  array     $edge
+     * @param  string    $name
+     * @return void
+     */
+    protected function autoLoad(Paginator $collection, array $edge, $name)
+    {
+        $relay = $this->getContainer();
+
+        if ($relay->isParent($name)) {
+            if ($typeClass = $this->typeFromSchema($edge['type'])) {
+                $type = app($typeClass);
+                $connections = $relay->connectionsInRequest($name, $type->connections());
+
+                foreach ($connections as $key => $connection) {
+                    if (isset($connection['load'])) {
+                        $load = $connection['load'];
+
+                        $load($collection, $relay->connectionArguments($key));
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -255,6 +310,24 @@ abstract class RelayType extends GraphQLType
     }
 
     /**
+     * Resolve type from schema.
+     *
+     * @param  ListOfType|Type $edge
+     * @return string|null
+     */
+    protected function typeFromSchema($edge)
+    {
+        $type = $edge instanceof ListOfType ? $edge->getWrappedType() : $edge;
+        $schema = config('graphql.types');
+
+        if ($typeClass = array_get($schema, $type->toString())) {
+            return $typeClass;
+        }
+
+        return array_get($schema, strtolower($type->toString()));
+    }
+
+    /**
      * Decode cursor from query arguments.
      *
      * @param  array  $args
@@ -274,6 +347,22 @@ abstract class RelayType extends GraphQLType
     protected function getCursorId($cursor)
     {
         return (int)$this->decodeRelayId($cursor);
+    }
+
+    /**
+     * Get schema container instance.
+     *
+     * @return SchemaContainer
+     */
+    protected function getContainer()
+    {
+        if ($this->container) {
+            return $this->container;
+        }
+
+        $this->container = app('relay');
+
+        return $this->container;
     }
 
     /**
