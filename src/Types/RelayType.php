@@ -97,9 +97,11 @@ abstract class RelayType extends GraphQLType
                     ]
                 ],
                 'resolve' => function ($parent, array $args, ResolveInfo $info) use ($name, $edge) {
-                    $collection = isset($edge['resolve']) ? $edge['resolve'] : $this->autoResolve($parent, $args, $info, $name);
+                    $collection = isset($edge['resolve']) ? $edge['resolve']($parent, $args, $info) : $this->autoResolve($parent, $args, $info, $name);
 
-                    $this->autoLoad($collection, $edge, $name);
+                    if (isset($edge['load'])) {
+                        $this->autoLoad($collection, $edge, $name);
+                    }
 
                     return $collection;
                 }
