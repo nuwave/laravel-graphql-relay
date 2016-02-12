@@ -5,7 +5,7 @@ namespace Nuwave\Relay\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Console\GeneratorCommand;
 
-class RelayMutationCommand extends GeneratorCommand
+class MutationMakeCommand extends GeneratorCommand
 {
     /**
      * The name and signature of the console command.
