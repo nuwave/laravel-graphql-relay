@@ -73,6 +73,7 @@ abstract class MutationWithClientId extends Mutation
     public function resolve($_, $args, ResolveInfo $info)
     {
         if ($this->mutatesRelayType && isset($args['input']['id'])) {
+            $args['input']['relay_id'] = $args['input']['id'];
             $args['input']['id'] = $this->decodeRelayId($args['input']['id']);
         }
 
