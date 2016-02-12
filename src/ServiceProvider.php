@@ -30,6 +30,10 @@ class ServiceProvider extends BaseProvider
     {
         $this->commands([
             \Nuwave\Relay\Commands\SchemaCommand::class,
+            \Nuwave\Relay\Commands\MutationMakeCommand::class,
+            \Nuwave\Relay\Commands\FieldMakeCommand::class,
+            \Nuwave\Relay\Commands\QueryMakeCommand::class,
+            \Nuwave\Relay\Commands\TypeMakeCommand::class,
         ]);
 
         $this->app->singleton('relay', function ($app) {

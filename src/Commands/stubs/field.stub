@@ -1,0 +1,52 @@
+<?php
+
+namespace DummyNamespace;
+
+use GraphQL;
+use GraphQL\Type\Definition\Type;
+use Folklore\GraphQL\Support\Field;
+use Nuwave\Relay\GlobalIdTrait;
+
+class DummyClass extends Field
+{
+    /**
+     * Field attributes.
+     *
+     * @var array
+     */
+    protected $attributes = [
+        'description' => ''
+    ];
+
+    /**
+     * The return type of the field.
+     *
+     * @return Type
+     */
+    public function type()
+    {
+        // return GraphQL::type('type');
+    }
+
+    /**
+     * Available field arguments.
+     *
+     * @return array
+     */
+    public function args()
+    {
+        return [];
+    }
+
+    /**
+     * Resolve the field.
+     *
+     * @param  mixed $root
+     * @param  array  $args
+     * @return mixed
+     */
+    public function resolve($root, array $args)
+    {
+        // TODO: Resolve field
+    }
+}
