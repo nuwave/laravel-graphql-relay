@@ -1,6 +1,6 @@
 <?php
 
-namespace Nuwave\Relay;
+namespace Nuwave\Relay\Traits;
 
 trait RelayModelTrait
 {
@@ -10,10 +10,9 @@ trait RelayModelTrait
      * Can be used if your Eloquent model doesn't
      * have an id field.
      *
-     * @param  null $value
      * @return integer
      */
-    public function getIdAttribute($value)
+    public function getIdAttribute()
     {
         return $this->attributes[$this->getKeyName()];
     }

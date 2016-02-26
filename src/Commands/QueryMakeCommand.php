@@ -2,7 +2,6 @@
 
 namespace Nuwave\Relay\Commands;
 
-use Illuminate\Console\Command;
 use Illuminate\Console\GeneratorCommand;
 
 class QueryMakeCommand extends GeneratorCommand
@@ -19,7 +18,7 @@ class QueryMakeCommand extends GeneratorCommand
      *
      * @var string
      */
-    protected $description = 'Generate a relay query.';
+    protected $description = 'Generate a GraphQL/Relay query.';
 
     /**
      * The type of class being generated.

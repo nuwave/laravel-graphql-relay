@@ -4,7 +4,7 @@ namespace Nuwave\Relay\Mutations;
 
 use Validator;
 use Folklore\GraphQL\Error\ValidationError;
-use Nuwave\Relay\GlobalIdTrait;
+use Nuwave\Relay\Traits\GlobalIdTrait;
 use Folklore\GraphQL\Support\Mutation;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\ObjectType;

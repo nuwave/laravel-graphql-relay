@@ -1,6 +1,6 @@
 <?php
 
-namespace Nuwave\Relay;
+namespace Nuwave\Relay\Traits;
 
 trait GlobalIdTrait
 {

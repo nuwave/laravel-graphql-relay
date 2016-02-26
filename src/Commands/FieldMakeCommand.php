@@ -2,7 +2,6 @@
 
 namespace Nuwave\Relay\Commands;
 
-use Illuminate\Console\Command;
 use Illuminate\Console\GeneratorCommand;
 
 class FieldMakeCommand extends GeneratorCommand
@@ -19,7 +18,7 @@ class FieldMakeCommand extends GeneratorCommand
      *
      * @var string
      */
-    protected $description = 'Generate a graphql field.';
+    protected $description = 'Generate a GraphQL/Relay field.';
 
     /**
      * The type of class being generated.
