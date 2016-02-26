@@ -63,7 +63,25 @@ class LaravelServiceProvider extends BaseProvider
 
         $this->setGraphQLConfig();
 
+        $this->registerRelayTypes();
+
         $this->initializeTypes();
+    }
+
+    /**
+     * Register the default relay types in the schema.
+     *
+     * @return void
+     */
+    protected function registerRelayTypes()
+    {
+        $relay = $this->app['relay'];
+
+        $relay->group(['namespace' => 'Nuwave\\Relay'], function () use ($relay) {
+            $relay->query('node', 'Node\\NodeQuery');
+            $relay->type('node', 'Node\\NodeType');
+            $relay->type('pageInfo', 'Types\\PageInfoType');
+        });
     }
 
     /**
