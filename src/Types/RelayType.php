@@ -51,29 +51,31 @@ abstract class RelayType extends \Folklore\GraphQL\Support\Type
     public function getConnections()
     {
         return collect($this->connections())->transform(function ($edge, $name) {
-            $edge['resolve'] = function ($collection, array $args, ResolveInfo $info) use ($name) {
-                $items = $this->getItems($collection, $info, $name);
+            if (!isset($edge['resolve'])) {
+                $edge['resolve'] = function ($collection, array $args, ResolveInfo $info) use ($name) {
+                    $items = $this->getItems($collection, $info, $name);
 
-                if (isset($args['first'])) {
-                    $total       = $items->count();
-                    $first       = $args['first'];
-                    $after       = $this->decodeCursor($args);
-                    $currentPage = $first && $after ? floor(($first + $after) / $first) : 1;
+                    if (isset($args['first'])) {
+                        $total       = $items->count();
+                        $first       = $args['first'];
+                        $after       = $this->decodeCursor($args);
+                        $currentPage = $first && $after ? floor(($first + $after) / $first) : 1;
+
+                        return new Paginator(
+                            $items->slice($after)->take($first),
+                            $total,
+                            $first,
+                            $currentPage
+                        );
+                    }
 
                     return new Paginator(
-                        $items->slice($after)->take($first),
-                        $total,
-                        $first,
-                        $currentPage
+                        $items,
+                        count($items),
+                        count($items)
                     );
-                }
-
-                return new Paginator(
-                    $items,
-                    count($items),
-                    count($items)
-                );
-            };
+                };
+            }
 
             $edge['args'] = ConnectionType::connectionArgs();
 
