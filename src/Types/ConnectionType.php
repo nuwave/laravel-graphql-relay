@@ -105,6 +105,10 @@ abstract class ConnectionType extends GraphQLType
      */
     protected function buildEdgeType($name, $type)
     {
+        if (preg_match('/Connection$/', $name)) {
+            $name = substr($name, 0, strlen($name) - 10);
+        }
+
         $edge = new EdgeType($name, $type);
 
         return $edge->toType();
