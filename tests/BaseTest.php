@@ -33,7 +33,7 @@ abstract class BaseTest extends \Orchestra\Testbench\TestCase
     {
         return [
             \Folklore\GraphQL\GraphQLServiceProvider::class,
-            \Nuwave\Relay\ServiceProvider::class,
+            \Nuwave\Relay\LaravelServiceProvider::class,
         ];
     }
 
@@ -47,6 +47,7 @@ abstract class BaseTest extends \Orchestra\Testbench\TestCase
     {
         return [
             'GraphQL' => \Folklore\GraphQL\Support\Facades\GraphQL::class,
+            'Relay' => \Nuwave\Relay\LaravelServiceProvider::class,
         ];
     }
 
@@ -77,6 +78,10 @@ abstract class BaseTest extends \Orchestra\Testbench\TestCase
                 'pageInfo' => \Nuwave\Relay\Types\PageInfoType::class,
                 'human' => \Nuwave\Relay\Tests\Assets\Types\HumanType::class,
             ]
+        ]);
+
+        $app['config']->set('relay', [
+            'schema_path' => 'schema/schema.php'
         ]);
     }
 }
