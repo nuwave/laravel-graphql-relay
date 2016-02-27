@@ -93,10 +93,14 @@ class LaravelServiceProvider extends BaseProvider
     {
         $relay = $this->app['relay'];
 
+        $mutations = config('graphql.schema.mutation', []);
+        $queries = config('graphql.schema.query', []);
+        $types = config('graphql.types', []);
+
         config([
-            'graphql.schema.mutation' => $relay->getMutations()->config(),
-            'graphql.schema.query' => $relay->getQueries()->config(),
-            'graphql.types' => $relay->getTypes()->config(),
+            'graphql.schema.mutation' => array_merge($mutations, $relay->getMutations()->config()),
+            'graphql.schema.query' => array_merge($queries, $relay->getQueries()->config()),
+            'graphql.types' => array_merge($types, $relay->getTypes()->config())
         ]);
     }
 
@@ -107,7 +111,7 @@ class LaravelServiceProvider extends BaseProvider
      */
     protected function initializeTypes()
     {
-        foreach(config('graphql.types') as $name => $type) {
+        foreach (config('graphql.types') as $name => $type) {
             $this->app['graphql']->addType($type, $name);
         }
     }
