@@ -3,11 +3,9 @@
 namespace Nuwave\Relay\Schema;
 
 use Closure;
-use Illuminate\Http\Request;
-use Nuwave\Relay\Schema\FieldCollection as Collection;
-use Nuwave\Relay\Schema\Field;
-use GraphQL\Language\Source;
 use GraphQL\Language\Parser as GraphQLParser;
+use GraphQL\Language\Source;
+use Nuwave\Relay\Schema\FieldCollection as Collection;
 
 class SchemaContainer
 {
@@ -70,7 +68,7 @@ class SchemaContainer
     /**
      * Create new instance of Mutation container.
      *
-     * @return void
+     * @param Parser $parser
      */
     public function __construct(Parser $parser)
     {
@@ -171,10 +169,33 @@ class SchemaContainer
     }
 
     /**
+     * Add connection to collection.
+     *
+     * @param  string $name
+     * @param  string $namespace
+     * @return Field
+     */
+    public function connection($name, $namespace)
+    {
+        $edgeType = $this->createField($name.'Edge', $namespace);
+
+        $this->types->push($edgeType);
+
+        $connectionType = $this->createField($name.'Connection', $namespace);
+
+        $this->types->push($connectionType);
+
+        return [
+            'connectionType' => $connectionType,
+            'edgeType' => $edgeType,
+        ];
+    }
+
+    /**
      * Add mutation to collection.
      *
      * @param string $name
-     * @param array $options
+     * @param array $namespace
      * @return Field
      */
     public function mutation($name, $namespace)
@@ -190,7 +211,7 @@ class SchemaContainer
      * Add query to collection.
      *
      * @param string $name
-     * @param array $options
+     * @param array $namespace
      * @return Field
      */
     public function query($name, $namespace)
@@ -221,7 +242,7 @@ class SchemaContainer
     /**
      * Group child elements.
      *
-     * @param  array   $middleware
+     * @param  array   $attributes
      * @param  Closure $callback
      * @return void
      */

@@ -1,20 +1,23 @@
 <?php
 
 return [
+
     /*
     |--------------------------------------------------------------------------
     | Namespace registry
     |--------------------------------------------------------------------------
     |
-    | Namespaces used when generating mutations, queries, types or fields with
-    | the 'php artisan make:relay:{type}' command.
+    | This package provides a set of commands to make it easy for you to
+    | create new parts in your GraphQL schema. Change these values to
+    | match the namespaces you'd like each piece to be created in.
     |
     */
+
     'namespaces' => [
         'mutations' => 'App\\GraphQL\\Mutations',
         'queries'   => 'App\\GraphQL\\Queries',
         'types'     => 'App\\GraphQL\\Types',
-        'fields'    => 'App\\GraphQL\\Fields'
+        'fields'    => 'App\\GraphQL\\Fields',
     ],
 
     /*
@@ -22,20 +25,13 @@ return [
     | Schema declaration
     |--------------------------------------------------------------------------
     |
-    | You can utilize this file to register all of you GraphQL schma queries
-    | and mutations. You can group collections together by namespace or middlware.
+    | This is a path that points to where your Relay schema is located
+    | relative to the app path. You should define your entire Relay
+    | schema in this file. Declare any Relay queries, mutations,
+    | and types here instead of laravel-graphql config file.
     |
     */
-    'schema' => function () {
-        Relay::group(['namespace' => 'Nuwave\\Relay'], function () {
-            Relay::group(['namespace' => 'Node'], function () {
-                Relay::query('node', 'NodeQuery');
-                Relay::type('node', 'NodeType');
-            });
 
-            Relay::type('pageInfo', 'Types\\PageInfoType');
-        });
+    'schema_path' => 'Http/GraphQL/schema.php',
 
-        // Additional Queries, Mutations and Types...
-    }
 ];

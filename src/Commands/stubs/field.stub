@@ -5,7 +5,7 @@ namespace DummyNamespace;
 use GraphQL;
 use GraphQL\Type\Definition\Type;
 use Folklore\GraphQL\Support\Field;
-use Nuwave\Relay\GlobalIdTrait;
+use Nuwave\Relay\Traits\GlobalIdTrait;
 
 class DummyClass extends Field
 {

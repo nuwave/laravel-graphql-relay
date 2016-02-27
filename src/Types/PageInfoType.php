@@ -6,17 +6,21 @@ use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\ResolveInfo;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Folklore\GraphQL\Support\Type as GraphQLType;
+use Nuwave\Relay\Traits\GlobalIdTrait;
 
 class PageInfoType extends GraphQLType
 {
+
+    use GlobalIdTrait;
+
     /**
      * Attributes of PageInfo.
      *
      * @var array
      */
     protected $attributes = [
-        'name' => 'PageInfo',
-        'description' => 'Information about pagination in a connection.'
+        'name' => 'pageInfo',
+        'description' => 'Information to aid in pagination.'
     ];
 
     /**
@@ -30,7 +34,7 @@ class PageInfoType extends GraphQLType
             'hasNextPage' => [
                 'type' => Type::nonNull(Type::boolean()),
                 'description' => 'When paginating forwards, are there more items?',
-                'resolve' => function ($collection, $test) {
+                'resolve' => function ($collection) {
                     if ($collection instanceof LengthAwarePaginator) {
                         return $collection->hasMorePages();
                     }
@@ -47,6 +51,34 @@ class PageInfoType extends GraphQLType
                     }
 
                     return false;
+                }
+            ],
+            'startCursor' => [
+                'type' => Type::string(),
+                'description' => 'When paginating backwards, the cursor to continue.',
+                'resolve' => function ($collection) {
+                    if ($collection instanceof LengthAwarePaginator) {
+                        return $this->encodeGlobalId(
+                            'arrayconnection',
+                            $collection->firstItem() * $collection->currentPage()
+                        );
+                    }
+
+                    return null;
+                }
+            ],
+            'endCursor' => [
+                'type' => Type::string(),
+                'description' => 'When paginating forwards, the cursor to continue.',
+                'resolve' => function ($collection) {
+                    if ($collection instanceof LengthAwarePaginator) {
+                        return $this->encodeGlobalId(
+                            'arrayconnection',
+                            $collection->lastItem() * $collection->currentPage()
+                        );
+                    }
+
+                    return null;
                 }
             ]
         ];
