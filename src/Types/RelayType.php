@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Model;
 use Nuwave\Relay\Traits\GlobalIdTrait;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 
-
 abstract class RelayType extends \Folklore\GraphQL\Support\Type
 {
 
@@ -138,10 +137,10 @@ abstract class RelayType extends \Folklore\GraphQL\Support\Type
     /**
      * Get the identifier of the type.
      *
-     * @param \Illuminate\Database\Eloquent\Model $obj
+     * @param  mixed $obj
      * @return mixed
      */
-    public function getIdentifier(Model $obj)
+    public function getIdentifier($obj)
     {
         return $obj->id;
     }
