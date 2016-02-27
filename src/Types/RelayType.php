@@ -137,6 +137,17 @@ abstract class RelayType extends \Folklore\GraphQL\Support\Type
     }
 
     /**
+     * Get id from encoded cursor.
+     *
+     * @param  string $cursor
+     * @return integer
+     */
+    protected function getCursorId($cursor)
+    {
+        return (int)$this->decodeRelayId($cursor);
+    }
+
+    /**
      * Get the identifier of the type.
      *
      * @param  mixed $obj
