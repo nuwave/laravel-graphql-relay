@@ -9,6 +9,8 @@ use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\InterfaceType;
 use Folklore\GraphQL\Error\ValidationError;
 use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Nuwave\Relay\Types\EloquentType;
 
 class GraphQL
 {
@@ -198,7 +200,8 @@ class GraphQL
             $type = app($type);
         }
 
-        $instance = $type->toType();
+        $instance = $type instanceof Model ? (new EloquentType($type))->toType() : $type->toType();
+
         $this->typeInstances->put($name, $instance);
 
         if ($type->interfaces) {
