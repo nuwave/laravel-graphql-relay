@@ -6,6 +6,7 @@ use ReflectionClass;
 use Illuminate\Database\Eloquent\Model;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Type\Definition\ResolveInfo;
 
 class EloquentType
 {
@@ -49,7 +50,11 @@ class EloquentType
      */
     public function toType()
     {
-        $this->createFields();
+        if (method_exists($this->model, 'graphqlFields')) {
+            $this->eloquentFields();
+        } else {
+            $this->schemaFields();
+        }
 
         $config = [];
         $config['name'] = $this->model->name ?: ucfirst((new ReflectionClass($this->model))->getShortName());
@@ -60,11 +65,39 @@ class EloquentType
     }
 
     /**
+     * Convert eloquent defined fields.
+     *
+     * @return array
+     */
+    public function eloquentFields()
+    {
+        $fields = collect($this->model->graphqlFields());
+
+        $fields->each(function ($field, $key) {
+            $method = 'resolve' . studly_case($key) . 'Field';
+
+            $data = [];
+            $data['type'] = $field['type'];
+            $data['description'] = isset($field['description']) ? $field['description'] : null;
+
+            if (isset($field['resolve'])) {
+                $data['resolve'] = $field['resolve'];
+            } elseif (method_exists($this->model, $method)) {
+                $data['resolve'] = function ($root, $args, $info) use ($method) {
+                    return $this->model->{$method}($root, $args, $info);
+                };
+            }
+
+            $this->fields->put($key, $data);
+        });
+    }
+
+    /**
      * Create fields for type.
      *
      * @return void
      */
-    protected function createFields()
+    protected function schemaFields()
     {
         $table = $this->model->getTable();
         $schema = $this->model->getConnection()->getSchemaBuilder();
