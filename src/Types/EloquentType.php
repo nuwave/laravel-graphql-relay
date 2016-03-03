@@ -39,7 +39,7 @@ class EloquentType
     public function __construct(Model $model)
     {
         $this->fields       = collect();
-        $this->hiddenFields = collect($model->getHidden());
+        $this->hiddenFields = collect($model->getHidden())->flip();
         $this->model        = $model;
     }
 
@@ -65,6 +65,26 @@ class EloquentType
     }
 
     /**
+     * Get fields for model.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function rawFields()
+    {
+        if (method_exists($this->model, 'graphqlFields')) {
+            $this->eloquentFields();
+        } else {
+            $this->schemaFields();
+        }
+
+        return $this->fields->transform(function ($field, $key) {
+            $field['type'] = $this->getRawType($field['type']);
+
+            return $field;
+        });
+    }
+
+    /**
      * Convert eloquent defined fields.
      *
      * @return array
@@ -74,21 +94,23 @@ class EloquentType
         $fields = collect($this->model->graphqlFields());
 
         $fields->each(function ($field, $key) {
-            $method = 'resolve' . studly_case($key) . 'Field';
+            if (!$this->skipAutoGenerate($key)) {
+                $method = 'resolve' . studly_case($key) . 'Field';
 
-            $data = [];
-            $data['type'] = $field['type'];
-            $data['description'] = isset($field['description']) ? $field['description'] : null;
+                $data = [];
+                $data['type'] = $field['type'];
+                $data['description'] = isset($field['description']) ? $field['description'] : null;
 
-            if (isset($field['resolve'])) {
-                $data['resolve'] = $field['resolve'];
-            } elseif (method_exists($this->model, $method)) {
-                $data['resolve'] = function ($root, $args, $info) use ($method) {
-                    return $this->model->{$method}($root, $args, $info);
-                };
+                if (isset($field['resolve'])) {
+                    $data['resolve'] = $field['resolve'];
+                } elseif (method_exists($this->model, $method)) {
+                    $data['resolve'] = function ($root, $args, $info) use ($method) {
+                        return $this->model->{$method}($root, $args, $info);
+                    };
+                }
+
+                $this->fields->put($key, $data);
             }
-
-            $this->fields->put($key, $data);
         });
     }
 
@@ -130,7 +152,7 @@ class EloquentType
             $field['description'] = $field['description'] ?: 'Primary id of type.';
         }
 
-        $resolve = 'resolve' . ucfirst(camel_case($name));
+        $resolve = 'resolve' . studly_case($name);
 
         if (method_exists($this->model, $resolve)) {
             $field['resolve'] = function ($root) use ($resolve) {
@@ -155,16 +177,42 @@ class EloquentType
         $type = Type::string();
 
         if ($name === $this->model->getKeyName()) {
-            $field['type'] = Type::nonNull(Type::id());
-        } elseif ($type === 'integer') {
-            $field['type'] = Type::int();
-        } elseif ($type === 'float' || $type === 'decimal') {
-            $field['type'] = Type::float();
-        } elseif ($type === 'boolean') {
-            $field['type'] = Type::boolean();
+            $type = Type::nonNull(Type::id());
+        } elseif ($colType === 'integer') {
+            $type = Type::int();
+        } elseif ($colType === 'float' || $colType === 'decimal') {
+            $type = Type::float();
+        } elseif ($colType === 'boolean') {
+            $type = Type::boolean();
         }
 
         return $type;
+    }
+
+    /**
+     * Get raw name for type.
+     *
+     * @param  Type   $type
+     * @return string
+     */
+    protected function getRawType(Type $type)
+    {
+        $class = get_class($type);
+        $namespace = 'GraphQL\\Type\\Definition\\';
+
+        if ($class == $namespace . 'NonNull') {
+            return 'Type::nonNull('. $this->getRawType($type->getWrappedType()) .')';
+        } elseif ($class == $namespace . 'IDType') {
+            return 'Type::id()';
+        } elseif ($class == $namespace . 'IntType') {
+            return 'Type::int()';
+        } elseif ($class == $namespace . 'BooleanType') {
+            return 'Type::bool()';
+        } elseif ($class == $namespace . 'FloatType') {
+            return 'Type::float()';
+        }
+
+        return 'Type::string()';
     }
 
     /**
