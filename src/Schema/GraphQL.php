@@ -10,7 +10,6 @@ use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\InterfaceType;
 use Folklore\GraphQL\Error\ValidationError;
-use Folklore\GraphQL\Support\Field;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Nuwave\Relay\Types\RelayType;
@@ -89,8 +88,7 @@ class GraphQL
     {
         $result = $this->queryAndReturnResult($query, $variables);
 
-        if (!empty($result->errors))
-        {
+        if (!empty($result->errors)) {
             return [
                 'data' => $result->data,
                 'errors' => array_map([$this, 'formatError'], $result->errors)
