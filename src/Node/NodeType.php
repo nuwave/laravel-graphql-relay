@@ -6,7 +6,7 @@ use GraphQL;
 use GraphQL\Type\Definition\Type;
 use Nuwave\Relay\Support\Definition\GraphQLInterface;
 
-class NodeType extends InterfaceType
+class NodeType extends GraphQLInterface
 {
     /**
      * Interface attributes.
