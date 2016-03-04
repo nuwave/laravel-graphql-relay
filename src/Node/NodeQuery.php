@@ -8,7 +8,7 @@ use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\ResolveInfo;
 use Nuwave\Relay\Support\Definition\GraphQLQuery;
 
-class NodeQuery extends Query
+class NodeQuery extends GraphQLQuery
 {
     use GlobalIdTrait;
 
