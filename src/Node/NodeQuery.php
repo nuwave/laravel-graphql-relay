@@ -6,7 +6,7 @@ use GraphQL;
 use Nuwave\Relay\Traits\GlobalIdTrait;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\ResolveInfo;
-use Folklore\GraphQL\Support\Query;
+use Nuwave\Relay\Support\Definition\GraphQLQuery;
 
 class NodeQuery extends Query
 {

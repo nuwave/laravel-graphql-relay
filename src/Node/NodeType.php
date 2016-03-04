@@ -4,7 +4,7 @@ namespace Nuwave\Relay\Node;
 
 use GraphQL;
 use GraphQL\Type\Definition\Type;
-use Folklore\GraphQL\Support\InterfaceType;
+use Nuwave\Relay\Support\Definition\GraphQLInterface;
 
 class NodeType extends InterfaceType
 {
