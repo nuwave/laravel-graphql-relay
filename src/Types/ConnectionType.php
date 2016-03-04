@@ -11,10 +11,17 @@ use GraphQL\Type\Definition\Type;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Nuwave\Relay\Traits\GlobalIdTrait;
 
-abstract class ConnectionType extends GraphQLType
+class ConnectionType extends GraphQLType
 {
 
     use GlobalIdTrait;
+
+    /**
+     * Type of node at the end of this connection.
+     *
+     * @return mixed
+     */
+    protected $type;
 
     /**
      * The edge resolver for this connection type
@@ -55,6 +62,8 @@ abstract class ConnectionType extends GraphQLType
      */
     protected function baseFields()
     {
+        $type = $this->type ?: $this->type();
+
         return [
             'pageInfo' => [
                 'type' => Type::nonNull(GraphQL::type('pageInfo')),
@@ -64,7 +73,7 @@ abstract class ConnectionType extends GraphQLType
                 },
             ],
             'edges' => [
-                'type' => Type::listOf($this->buildEdgeType($this->name, $this->type())),
+                'type' => Type::listOf($this->buildEdgeType($this->name, $type)),
                 'description' => 'Information to aid in pagination.',
                 'resolve' => function ($collection) {
                     return $this->injectCursor($collection);
@@ -190,6 +199,26 @@ abstract class ConnectionType extends GraphQLType
     }
 
     /**
+     * Set the type at the end of the connection.
+     *
+     * @param Type $type
+     */
+    public function setEdgeType($type)
+    {
+        $this->type = $type;
+    }
+
+    /**
+     * Set name of connection.
+     *
+     * @param string $name
+     */
+    public function setName($name)
+    {
+        $this->name = $name;
+    }
+
+    /**
      * Dynamically retrieve the value of an attribute.
      *
      * @param  string  $key
@@ -218,5 +247,8 @@ abstract class ConnectionType extends GraphQLType
      *
      * @return mixed
      */
-    abstract public function type();
+    public function type()
+    {
+        return null;
+    }
 }

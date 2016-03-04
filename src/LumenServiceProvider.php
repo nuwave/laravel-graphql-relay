@@ -2,7 +2,7 @@
 
 namespace Nuwave\Relay;
 
-use Folklore\GraphQL\GraphQL;
+use Nuwave\Relay\Schema\GraphQL;
 use Nuwave\Relay\Commands\FieldMakeCommand;
 use Nuwave\Relay\Commands\MutationMakeCommand;
 use Nuwave\Relay\Commands\QueryMakeCommand;
