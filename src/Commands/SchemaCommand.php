@@ -3,7 +3,7 @@
 namespace Nuwave\Relay\Commands;
 
 use Illuminate\Console\Command;
-use Nuwave\Relay\SchemaGenerator;
+use Nuwave\Relay\Support\SchemaGenerator;
 
 class SchemaCommand extends Command
 {
