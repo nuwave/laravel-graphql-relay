@@ -34,4 +34,6 @@ return [
 
     'schema_path' => 'Http/GraphQL/schema.php',
 
+    'model_path' => 'App\\Models',
+
 ];

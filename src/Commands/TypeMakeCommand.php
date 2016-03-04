@@ -2,7 +2,10 @@
 
 namespace Nuwave\Relay\Commands;
 
+use ReflectionClass;
+use Nuwave\Relay\Types\EloquentType;
 use Illuminate\Console\GeneratorCommand;
+use Symfony\Component\Console\Input\InputOption;
 
 class TypeMakeCommand extends GeneratorCommand
 {
@@ -46,5 +49,83 @@ class TypeMakeCommand extends GeneratorCommand
     protected function getDefaultNamespace($rootNamespace)
     {
         return config('relay.namespaces.types');
+    }
+
+    /**
+     * Build the class with the given name.
+     *
+     * @param  string  $name
+     * @return string
+     */
+    protected function buildClass($name)
+    {
+        if ($model = $this->option('model')) {
+            $this->setViewPath();
+            $stub = $this->getEloquentStub($model);
+        } else {
+            $stub = $this->files->get($this->getStub());
+        }
+
+        return $this->replaceNamespace($stub, $name)->replaceClass($stub, $name);
+    }
+
+    /**
+     * Get the console command options.
+     *
+     * @return array
+     */
+    protected function getOptions()
+    {
+        return [
+            ['model', null, InputOption::VALUE_OPTIONAL, 'Generate a Eloquent GraphQL type.'],
+        ];
+    }
+
+    /**
+     * Set config view paths.
+     *
+     * @return void
+     */
+    protected function setViewPath()
+    {
+        $paths = config('view.paths');
+        $paths[] = realpath(__DIR__.'/stubs');
+
+        config(['view.paths' => $paths]);
+    }
+
+    /**
+     * Generate stub from eloquent type.
+     *
+     * @param  string $model
+     * @return string
+     */
+    protected function getEloquentStub($model)
+    {
+        $shortName = $model;
+        $rootNamespace = $this->laravel->getNamespace();
+
+        if (starts_with($model, $rootNamespace)) {
+            $shortName = (new ReflectionClass($model))->getShortName();
+        } else {
+            $model = config('relay.model_path') . "\\" . $model;
+        }
+
+        $fields = $this->getTypeFields($model);
+
+        return "<?php\n\n" . view('eloquent', compact('model', 'shortName', 'fields'))->render();
+    }
+
+    /**
+     * Generate fields for type.
+     *
+     * @param  string $class
+     * @return array
+     */
+    protected function getTypeFields($class)
+    {
+        $model = app($class);
+
+        return (new EloquentType($model))->rawFields();
     }
 }
