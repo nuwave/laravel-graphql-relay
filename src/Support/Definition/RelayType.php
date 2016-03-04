@@ -1,17 +1,17 @@
 <?php
 
-namespace Nuwave\Relay\Types;
+namespace Nuwave\Relay\Support\Definition;
 
 use GraphQL;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Nuwave\Relay\Traits\GlobalIdTrait;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Nuwave\Relay\Traits\GlobalIdTrait;
 
-abstract class RelayType extends \Folklore\GraphQL\Support\Type
+abstract class RelayType extends GraphQLType
 {
 
     use GlobalIdTrait;
@@ -58,7 +58,7 @@ abstract class RelayType extends \Folklore\GraphQL\Support\Type
                 };
             }
 
-            $edge['args'] = ConnectionType::connectionArgs();
+            $edge['args'] = RelayConnectionType::connectionArgs();
 
             return $edge;
 

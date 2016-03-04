@@ -9,12 +9,13 @@ use GraphQL\Schema;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\InterfaceType;
-use Folklore\GraphQL\Error\ValidationError;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Nuwave\Relay\Types\RelayType;
-use Nuwave\Relay\Types\EloquentType;
-use Nuwave\Relay\Types\ConnectionType;
+
+use Nuwave\Relay\Support\ValidationError;
+use Nuwave\Relay\Support\Definition\RelayType;
+use Nuwave\Relay\Support\Definition\EloquentType;
+use Nuwave\Relay\Support\Definition\RelayConnectionType;
 use Nuwave\Relay\Support\ConnectionResolver;
 
 class GraphQL
@@ -301,7 +302,7 @@ class GraphQL
     public function connectionField($name, $resolve = null)
     {
         $edge = $this->type($name);
-        $type = new ConnectionType();
+        $type = new RelayConnectionType();
         $connectionName = (!preg_match('/Connection$/', $name)) ? $name.'Connection' : $name;
 
         $type->setName(studly_case($connectionName));
@@ -309,7 +310,7 @@ class GraphQL
         $instance = $type->toType();
 
         $field = [
-            'args' => ConnectionType::connectionArgs(),
+            'args' => RelayConnectionType::connectionArgs(),
             'type' => $instance,
             'resolve' => $resolve
         ];

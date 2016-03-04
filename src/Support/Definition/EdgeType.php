@@ -1,10 +1,9 @@
 <?php
 
-namespace Nuwave\Relay\Types;
+namespace Nuwave\Relay\Support\Definition;
 
 use GraphQL;
 use Closure;
-use Folklore\GraphQL\Support\Type as GraphQLType;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 

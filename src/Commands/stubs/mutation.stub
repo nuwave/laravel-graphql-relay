@@ -6,9 +6,9 @@ use GraphQL;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\InputObjectType;
-use Nuwave\Relay\Mutations\MutationWithClientId;
+use Nuwave\Relay\Support\Definition\RelayMutation;
 
-class DummyClass extends MutationWithClientId
+class DummyClass extends RelayMutation
 {
     /**
      * Name of mutation.

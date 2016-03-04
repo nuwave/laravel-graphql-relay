@@ -1,17 +1,16 @@
 <?php
 
-namespace Nuwave\Relay\Types;
+namespace Nuwave\Relay\Support\Definition;
 
 use GraphQL;
 use Closure;
-use Folklore\GraphQL\Support\Type as GraphQLType;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Nuwave\Relay\Traits\GlobalIdTrait;
 
-class ConnectionType extends GraphQLType
+class RelayConnectionType extends GraphQLType
 {
 
     use GlobalIdTrait;

@@ -78,7 +78,7 @@ class LumenServiceProvider extends BaseProvider
         $relay->group(['namespace' => 'Nuwave\\Relay'], function () use ($relay) {
             $relay->query('node', 'Node\\NodeQuery');
             $relay->type('node', 'Node\\NodeType');
-            $relay->type('pageInfo', 'Types\\PageInfoType');
+            $relay->type('pageInfo', 'Support\\Definition\\PageInfoType');
         });
     }
 

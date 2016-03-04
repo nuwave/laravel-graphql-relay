@@ -1,6 +1,6 @@
 <?php
 
-namespace Nuwave\Relay\Types;
+namespace Nuwave\Relay\Support\Definition;
 
 use ReflectionClass;
 use Illuminate\Database\Eloquent\Model;
@@ -20,14 +20,14 @@ class EloquentType
     /**
      * Available fields.
      *
-     * @var \Illuminate\Support\Collection
+     * @var \Illuminate\Support\DefinitionsCollection
      */
     protected $fields;
 
     /**
      * Hidden type field.
      *
-     * @var \Illuminate\Support\Collection
+     * @var \Illuminate\Support\DefinitionsCollection
      */
     protected $hiddenFields;
 
@@ -67,7 +67,7 @@ class EloquentType
     /**
      * Get fields for model.
      *
-     * @return \Illuminate\Support\Collection
+     * @return \Illuminate\Support\DefinitionsCollection
      */
     public function rawFields()
     {

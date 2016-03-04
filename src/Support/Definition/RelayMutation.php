@@ -1,17 +1,16 @@
 <?php
 
-namespace Nuwave\Relay\Mutations;
+namespace Nuwave\Relay\Support\Definition;
 
 use Validator;
-use Folklore\GraphQL\Error\ValidationError;
-use Nuwave\Relay\Traits\GlobalIdTrait;
-use Folklore\GraphQL\Support\Mutation;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\InputObjectType;
+use Nuwave\Relay\Support\ValidationError;
+use Nuwave\Relay\Traits\GlobalIdTrait;
 
-abstract class MutationWithClientId extends Mutation
+abstract class RelayMutation extends GraphQLMutation
 {
     use GlobalIdTrait;
 
