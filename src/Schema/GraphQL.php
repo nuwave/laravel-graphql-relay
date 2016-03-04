@@ -2,15 +2,21 @@
 
 namespace Nuwave\Relay\Schema;
 
+use Closure;
 use GraphQL\GraphQL as GraphQLBase;
 use GraphQL\Error;
 use GraphQL\Schema;
 use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\InterfaceType;
 use Folklore\GraphQL\Error\ValidationError;
+use Folklore\GraphQL\Support\Field;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Nuwave\Relay\Types\RelayType;
 use Nuwave\Relay\Types\EloquentType;
+use Nuwave\Relay\Types\ConnectionType;
+use Nuwave\Relay\Support\ConnectionResolver;
 
 class GraphQL
 {
@@ -29,11 +35,11 @@ class GraphQL
     protected $queries;
 
     /**
-     * Collection of registered types.
+     * Collection of registered mutations.
      *
      * @var \Illuminate\Support\Collection
      */
-    protected $types;
+    protected $mutations;
 
     /**
      * Collection of type instances.
@@ -43,11 +49,18 @@ class GraphQL
     protected $typeInstances;
 
     /**
-     * Collection of registered mutations.
+     * Collection of connection type instances.
      *
      * @var \Illuminate\Support\Collection
      */
-    protected $mutations;
+    protected $connectionInstances;
+
+    /**
+     * Instance of connection resolver.
+     *
+     * @var ConnectionResolver
+     */
+    protected $connectionResolver;
 
     /**
      * Create a new instance of GraphQL.
@@ -62,6 +75,7 @@ class GraphQL
         $this->queries = collect();
         $this->mutations = collect();
         $this->typeInstances = collect();
+        $this->connectionInstances = collect();
     }
 
     /**
@@ -187,9 +201,7 @@ class GraphQL
      */
     public function type($name, $fresh = false)
     {
-        if (!$this->types->has($name)) {
-            throw new \Exception("Type [{$name}] not found.");
-        }
+        $this->checkType($name);
 
         if (!$fresh && $this->typeInstances->has($name)) {
             return $this->typeInstances->get($name);
@@ -209,6 +221,38 @@ class GraphQL
         }
 
         return $instance;
+    }
+
+    /**
+     * Get instance of connection type.
+     *
+     * @param  string $name
+     * @param  Closure|string|null $resolve
+     * @param  boolean $fresh
+     * @return mixed
+     */
+    public function connection($name, $resolve = null, $fresh = false)
+    {
+        $this->checkType($name);
+
+        if ($resolve && !$resolve instanceof Closure) {
+            $resolve = function ($root, array $args, ResolveInfo $info) use ($resolve) {
+                return $this->resolveConnection($root, $args, $info, $resolve);
+            };
+        }
+
+        if (!$fresh && $this->connectionInstances->has($name)) {
+            $field = $this->connectionInstances->get($name);
+            $field['resolve'] = $resolve;
+
+            return $field;
+        }
+
+        $field = $this->connectionField($name, $resolve);
+
+        $this->connectionInstances->put($name, $field);
+
+        return $field;
     }
 
     /**
@@ -234,5 +278,82 @@ class GraphQL
         }
 
         return $error;
+    }
+
+    /**
+     * Check if type is registered.
+     *
+     * @param  string $name
+     * @return void
+     */
+    protected function checkType($name)
+    {
+        if (!$this->types->has($name)) {
+            throw new \Exception("Type [{$name}] not found.");
+        }
+    }
+
+    /**
+     * Generate connection field.
+     *
+     * @param  string $name
+     * @param  Closure|null $resolve
+     * @return array
+     */
+    public function connectionField($name, $resolve = null)
+    {
+        $edge = $this->type($name);
+        $type = new ConnectionType();
+        $connectionName = (!preg_match('/Connection$/', $name)) ? $name.'Connection' : $name;
+
+        $type->setName(studly_case($connectionName));
+        $type->setEdgeType($edge);
+        $instance = $type->toType();
+
+        $field = [
+            'args' => ConnectionType::connectionArgs(),
+            'type' => $instance,
+            'resolve' => $resolve
+        ];
+
+        if ($type->interfaces) {
+            InterfaceType::addImplementationToInterfaces($instance);
+        }
+
+        return $field;
+    }
+
+    /**
+     * Auto-resolve connection.
+     *
+     * @param  mixed $root
+     * @param  array $args
+     * @param  ResolveInfo $info
+     * @param  string $name
+     * @return mixed
+     */
+    public function resolveConnection($root, array $args, ResolveInfo $info, $name = '')
+    {
+        return $this->getConnectionResolver()->resolve($root, $args, $info, $name);
+    }
+
+    /**
+     * Set instance of connection resolver.
+     *
+     * @param ConnectionResolver $resolver
+     */
+    public function setConnectionResolver(ConnectionResolver $resolver)
+    {
+        $this->connectionResolver = $resolver;
+    }
+
+    /**
+     * Get instance of connection resolver.
+     *
+     * @return ConnectionResolver
+     */
+    public function getConnectionResolver()
+    {
+        return $this->connectionResolver ?: app(ConnectionResolver::class);
     }
 }
