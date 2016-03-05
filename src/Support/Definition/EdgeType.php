@@ -46,7 +46,13 @@ class EdgeType extends GraphQLType
     {
         return [
             'node' => [
-                'type' => $this->type,
+                'type' => function () {
+                    if (is_object($this->type)) {
+                        return $this->type;
+                    }
+
+                    return $this->getNodeType($this->type);
+                },
                 'description' => 'The item at the end of the edge.',
                 'resolve' => function ($edge) {
                     return $edge;
@@ -90,5 +96,18 @@ class EdgeType extends GraphQLType
     public function toType()
     {
         return new ObjectType($this->toArray());
+    }
+
+    /**
+     * Get node at the end of the edge.
+     *
+     * @param  string $name
+     * @return \GraphQL\Type\Definition\OutputType
+     */
+    protected function getNodeType($name)
+    {
+        $graphql = app('graphql');
+
+        return $graphql->hasType($this->type) ? $graphql->getType($this->type) : $graphql->type($this->type);
     }
 }

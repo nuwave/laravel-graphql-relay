@@ -223,6 +223,28 @@ class GraphQL
     }
 
     /**
+     * Get if type is registered.
+     *
+     * @param  string  $name
+     * @return boolean
+     */
+    public function hasType($name)
+    {
+        return $this->typeInstances->has($name);
+    }
+
+    /**
+     * Get registered type.
+     *
+     * @param  string $name
+     * @return \GraphQL\Type\Definition\OutputType
+     */
+    public function getType($name)
+    {
+        return $this->typeInstances->get($name);
+    }
+
+    /**
      * Get instance of connection type.
      *
      * @param  string $name
@@ -301,12 +323,11 @@ class GraphQL
      */
     public function connectionField($name, $resolve = null)
     {
-        $edge = $this->type($name);
         $type = new RelayConnectionType();
         $connectionName = (!preg_match('/Connection$/', $name)) ? $name.'Connection' : $name;
 
         $type->setName(studly_case($connectionName));
-        $type->setEdgeType($edge);
+        $type->setEdgeType($name);
         $instance = $type->toType();
 
         $field = [
