@@ -63,6 +63,13 @@ class GraphQL
     protected $connectionResolver;
 
     /**
+     * Instance of cache store.
+     *
+     * @var \Nuwave\Relay\Support\Cache\FileStore
+     */
+    protected $cache;
+
+    /**
      * Create a new instance of GraphQL.
      *
      * @param \Illuminate\Contracts\Foundation\Application $app
@@ -375,5 +382,25 @@ class GraphQL
     public function getConnectionResolver()
     {
         return $this->connectionResolver ?: app(ConnectionResolver::class);
+    }
+
+    /**
+     * Get instance of cache store.
+     *
+     * @return \Nuwave\Relay\Support\Cache\FileStore
+     */
+    public function cache()
+    {
+        return $this->cache ?: app(\Nuwave\Relay\Support\Cache\FileStore::class);
+    }
+
+    /**
+     * Set instance of Cache store.
+     *
+     * @param \Nuwave\Relay\Support\Cache\FileStore
+     */
+    public function setCache(FileStore $cache)
+    {
+        $this->cache = $cache;
     }
 }

@@ -5,6 +5,7 @@ namespace Nuwave\Relay\Support\Definition;
 use ReflectionClass;
 use Illuminate\Database\Eloquent\Model;
 use GraphQL\Type\Definition\Type;
+use GraphQL\Type\Definition\IDType;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 
@@ -50,18 +51,26 @@ class EloquentType
      */
     public function toType()
     {
-        if (method_exists($this->model, 'graphqlFields')) {
-            $this->eloquentFields();
+        $graphql = app('graphql');
+        $name = $this->getName();
+        $description = $this->getDescription();
+
+        if ($fields = $graphql->cache()->get($name)) {
+            $this->fields = $fields;
         } else {
+            if (method_exists($this->model, 'graphqlFields')) {
+                $this->eloquentFields();
+            }
+
             $this->schemaFields();
+            $graphql->cache()->store($name, $this->fields);
         }
 
-        $config = [];
-        $config['name'] = $this->model->name ?: ucfirst((new ReflectionClass($this->model))->getShortName());
-        $config['$description'] = isset($this->model->description) ? $this->model->description : null;
-        $config['fields'] = $this->fields->toArray();
-
-        return new ObjectType($config);
+        return new ObjectType([
+            'name'        => $name,
+            'description' => $description,
+            'fields'      => $this->fields->toArray()
+        ]);
     }
 
     /**
@@ -94,19 +103,15 @@ class EloquentType
         $fields = collect($this->model->graphqlFields());
 
         $fields->each(function ($field, $key) {
-            if (!$this->skipAutoGenerate($key)) {
-                $method = 'resolve' . studly_case($key) . 'Field';
-
+            if (!$this->skipField($key)) {
                 $data = [];
                 $data['type'] = $field['type'];
                 $data['description'] = isset($field['description']) ? $field['description'] : null;
 
                 if (isset($field['resolve'])) {
                     $data['resolve'] = $field['resolve'];
-                } elseif (method_exists($this->model, $method)) {
-                    $data['resolve'] = function ($root, $args, $info) use ($method) {
-                        return $this->model->{$method}($root, $args, $info);
-                    };
+                } elseif ($method = $this->getModelResolve($key)) {
+                    $data['resolve'] = $method;
                 }
 
                 $this->fields->put($key, $data);
@@ -126,7 +131,7 @@ class EloquentType
         $columns = collect($schema->getColumnListing($table));
 
         $columns->each(function ($column) use ($table, $schema) {
-            if (!$this->skipAutoGenerate($column)) {
+            if (!$this->skipField($column)) {
                 $this->generateField(
                     $column,
                     $schema->getColumnType($table, $column)
@@ -152,12 +157,8 @@ class EloquentType
             $field['description'] = $field['description'] ?: 'Primary id of type.';
         }
 
-        $resolve = 'resolve' . studly_case($name);
-
-        if (method_exists($this->model, $resolve)) {
-            $field['resolve'] = function ($root) use ($resolve) {
-                return $this->model->{$resolve}($root);
-            };
+        if ($method = $this->getModelResolve($name)) {
+            $field['resolve'] = $method;
         }
 
         $fieldName = $this->model->camelCase ? camel_case($name) : $name;
@@ -177,7 +178,7 @@ class EloquentType
         $type = Type::string();
 
         if ($name === $this->model->getKeyName()) {
-            $type = Type::nonNull(Type::id());
+            $type = Type::id();
         } elseif ($colType === 'integer') {
             $type = Type::int();
         } elseif ($colType === 'float' || $colType === 'decimal') {
@@ -185,6 +186,10 @@ class EloquentType
         } elseif ($colType === 'boolean') {
             $type = Type::boolean();
         }
+
+        // Seems a bit odd, but otherwise we'll get an error thrown stating
+        // that two types have the same name.
+        $type->name = $this->getName().' '.$type->name;
 
         return $type;
     }
@@ -221,12 +226,49 @@ class EloquentType
      * @param  string $field
      * @return boolean
      */
-    protected function skipAutoGenerate($name = '')
+    protected function skipField($name = '')
     {
-        if ($this->hiddenFields->has($name)) {
+        if ($this->hiddenFields->has($name) || $this->fields->has($name)) {
             return true;
         }
 
         return false;
+    }
+
+    /**
+     * Check if model has resolve function.
+     *
+     * @param  string  $key
+     * @return string|null
+     */
+    protected function getModelResolve($key)
+    {
+        $method = 'resolve' . studly_case($key) . 'Field';
+
+        if (method_exists($this->model, $method)) {
+            return array($this->model, $method);
+        }
+
+        return null;
+    }
+
+    /**
+     * Get name for type.
+     *
+     * @return string
+     */
+    protected function getName()
+    {
+        return $this->model->name ?: ucfirst((new ReflectionClass($this->model))->getShortName());
+    }
+
+    /**
+     * Get description of type.
+     *
+     * @return string
+     */
+    protected function getDescription()
+    {
+        return $this->model->description ?: null;
     }
 }
