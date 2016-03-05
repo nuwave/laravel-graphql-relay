@@ -8,6 +8,7 @@ use Nuwave\Relay\Commands\MutationMakeCommand;
 use Nuwave\Relay\Commands\QueryMakeCommand;
 use Nuwave\Relay\Commands\SchemaCommand;
 use Nuwave\Relay\Commands\TypeMakeCommand;
+use Nuwave\Relay\Commands\CacheCommand;
 use Nuwave\Relay\Schema\Parser;
 use Nuwave\Relay\Schema\SchemaContainer;
 use Illuminate\Support\ServiceProvider as BaseProvider;
@@ -37,6 +38,7 @@ class LaravelServiceProvider extends BaseProvider
     {
         $this->commands([
             SchemaCommand::class,
+            CacheCommand::class,
             MutationMakeCommand::class,
             FieldMakeCommand::class,
             QueryMakeCommand::class,
