@@ -4,6 +4,7 @@ namespace Nuwave\Relay\Commands;
 
 use Illuminate\Console\Command;
 use Nuwave\Relay\Support\SchemaGenerator;
+use Nuwave\Relay\Support\Cache\FileStore;
 
 class CacheCommand extends Command
 {
@@ -22,12 +23,33 @@ class CacheCommand extends Command
     protected $description = 'Cache Eloquent Types.';
 
     /**
+     * Cache manager.
+     *
+     * @var \Nuwave\Relay\Support\Cache\FileStore
+     */
+    protected $cache;
+
+    /**
+     * Create new instance of cache command.
+     *
+     * @param FileStore $cache
+     */
+    public function __construct(FileStore $cache)
+    {
+        parent::__construct();
+
+        $this->cache = $cache;
+    }
+
+    /**
      * Execute the console command.
      *
      * @return mixed
      */
     public function handle()
     {
+        $this->cache->flush();
+
         app('graphql')->schema();
 
         $this->info('Eloquent Types successfully cached.');

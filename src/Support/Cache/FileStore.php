@@ -36,6 +36,20 @@ class FileStore
     }
 
     /**
+     * Remove the cache directory.
+     *
+     * @return void
+     */
+    public function flush()
+    {
+        $path = $this->getPath('');
+
+        collect(array_diff(scandir($path), ['..', '.']))->each(function ($file) {
+            unlink($this->getPath($file));
+        });
+    }
+
+    /**
      * Get path name of item.
      *
      * @param  string $name
