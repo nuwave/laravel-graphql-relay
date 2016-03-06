@@ -46,30 +46,14 @@ class EdgeType extends GraphQLType
     {
         return [
             'node' => [
-                'type' => function () {
-                    if (is_object($this->type)) {
-                        return $this->type;
-                    }
-
-                    return $this->getNodeType($this->type);
-                },
+                'type' => array($this, 'nodeType'),
                 'description' => 'The item at the end of the edge.',
-                'resolve' => function ($edge) {
-                    return $edge;
-                },
+                'resolve' => array($this, 'edge'),
             ],
             'cursor' => [
                 'type' => Type::nonNull(Type::string()),
                 'description' => 'A cursor for use in pagination.',
-                'resolve' => function ($edge) {
-                    if (is_array($edge) && isset($edge['relayCursor'])) {
-                        return $edge['relayCursor'];
-                    } elseif (is_array($edge->attributes)) {
-                        return $edge->attributes['relayCursor'];
-                    }
-
-                    return $edge->relayCursor;
-                },
+                'resolve' => array($this, 'resolveCursor'),
             ]
         ];
     }
@@ -96,6 +80,48 @@ class EdgeType extends GraphQLType
     public function toType()
     {
         return new ObjectType($this->toArray());
+    }
+
+    /**
+     * Type of node.
+     *
+     * @return mixed
+     */
+    public function nodeType()
+    {
+        if (is_object($this->type)) {
+            return $this->type;
+        }
+
+        return $this->getNodeType($this->type);
+    }
+
+    /**
+     * Resolve node at end of edge.
+     *
+     * @param  mixed $edge
+     * @return mixed
+     */
+    public function resolveNode($edge)
+    {
+        return $edge;
+    }
+
+    /**
+     * Resolve cursor for edge.
+     *
+     * @param  mixed $edge
+     * @return string
+     */
+    public function resolveCursor($edge)
+    {
+        if (is_array($edge) && isset($edge['relayCursor'])) {
+            return $edge['relayCursor'];
+        } elseif (is_array($edge->attributes)) {
+            return $edge->attributes['relayCursor'];
+        }
+
+        return $edge->relayCursor;
     }
 
     /**

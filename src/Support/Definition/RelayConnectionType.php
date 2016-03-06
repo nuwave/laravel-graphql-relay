@@ -67,16 +67,12 @@ class RelayConnectionType extends GraphQLType
             'pageInfo' => [
                 'type' => Type::nonNull(GraphQL::type('pageInfo')),
                 'description' => 'Information to aid in pagination.',
-                'resolve' => function ($collection) {
-                    return $collection;
-                },
+                'resolve' => array($this, 'resolvePageInfo'),
             ],
             'edges' => [
                 'type' => Type::listOf($this->buildEdgeType($this->name, $type)),
                 'description' => 'Information to aid in pagination.',
-                'resolve' => function ($collection) {
-                    return $this->injectCursor($collection);
-                },
+                'resolve' => array($this, 'resolveInjectCursor'),
             ]
         ];
     }
@@ -175,9 +171,7 @@ class RelayConnectionType extends GraphQLType
             'name' => ucfirst($this->name),
             'description' => 'A connection to a list of items.',
             'fields' => $fields,
-            'resolve' => function ($root, $args, ResolveInfo $info) {
-                return $this->resolve($root, $args, $info, $this->name);
-            }
+            'resolve' => array($this, 'resolve')
         ];
     }
 
@@ -249,5 +243,15 @@ class RelayConnectionType extends GraphQLType
     public function type()
     {
         return null;
+    }
+
+    public function resolvePageInfo($collection)
+    {
+        return $collection;
+    }
+
+    public function resolveInjectCursor($collection)
+    {
+        return $this->injectCursor($collection);
     }
 }

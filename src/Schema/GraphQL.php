@@ -11,6 +11,7 @@ use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\InterfaceType;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
+use SuperClosure\SerializableClosure;
 
 use Nuwave\Relay\Support\ValidationError;
 use Nuwave\Relay\Support\Definition\RelayType;
@@ -263,10 +264,12 @@ class GraphQL
     {
         $this->checkType($name);
 
-        if ($resolve && !$resolve instanceof Closure) {
-            $resolve = function ($root, array $args, ResolveInfo $info) use ($resolve) {
-                return $this->resolveConnection($root, $args, $info, $resolve);
-            };
+        if (!is_null($resolve) && !$resolve instanceof Closure) {
+            $connectionResolver = $this->getConnectionResolver();
+
+            $resolve = new SerializableClosure(function ($root, array $args, ResolveInfo $info) use ($resolve, $connectionResolver) {
+                return $connectionResolver->resolve($root, $args, $info, $resolve);
+            });
         }
 
         if (!$fresh && $this->connectionInstances->has($name)) {

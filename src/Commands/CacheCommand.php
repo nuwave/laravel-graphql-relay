@@ -37,7 +37,7 @@ class CacheCommand extends Command
     public function __construct(FileStore $cache)
     {
         parent::__construct();
-
+        
         $this->cache = $cache;
     }
 

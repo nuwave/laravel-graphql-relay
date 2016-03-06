@@ -8,33 +8,6 @@ use Nuwave\Relay\Schema\GraphQL;
 class GraphQLMutation extends GraphQLField
 {
     /**
-     * The validator instance.
-     *
-     * @var \Illuminate\Validation\Factory
-     */
-    protected $validator;
-
-    /**
-     * The container instance of GraphQL.
-     *
-     * @var \Laravel\Lumen\Application|mixed
-     */
-    protected $graphQL;
-
-    /**
-     * GraphQLMutation constructor.
-     *
-     */
-    public function __construct()
-    {
-        parent::__construct();
-
-        $this->validator = app('validator');
-
-        $this->graphQL = app('graphql');
-    }
-
-    /**
      * Get the validation rules.
      *
      * @return array
@@ -105,7 +78,7 @@ class GraphQLMutation extends GraphQLField
         $rules = $this->getRules(...$args);
 
         if (sizeof($rules)) {
-            $validator = $this->validator->make($args['input'], $rules);
+            $validator = app('validator')->make($args['input'], $rules);
 
             if ($validator->fails()) {
                 throw with(new ValidationError('Validation failed', $validator));

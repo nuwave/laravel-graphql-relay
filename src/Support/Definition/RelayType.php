@@ -51,7 +51,9 @@ abstract class RelayType extends GraphQLType
      */
     public function getConnections()
     {
-        return collect($this->connections())->transform(function ($edge, $name) {
+        $graphql = app('graphql');
+
+        return collect($this->connections())->transform(function ($edge, $name) use ($graphql) {
             if (!isset($edge['resolve'])) {
                 $edge['resolve'] = function ($root, array $args, ResolveInfo $info) use ($name) {
                     return GraphQL::resolveConnection($root, $args, $info, $name);
