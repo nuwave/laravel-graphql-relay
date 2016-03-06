@@ -44,9 +44,11 @@ class FileStore
     {
         $path = $this->getPath('');
 
-        collect(array_diff(scandir($path), ['..', '.']))->each(function ($file) {
-            unlink($this->getPath($file));
-        });
+        if (file_exists($path)) {
+            collect(array_diff(scandir($path), ['..', '.']))->each(function ($file) {
+                unlink($this->getPath($file));
+            });
+        }
     }
 
     /**
