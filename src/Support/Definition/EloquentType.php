@@ -33,6 +33,13 @@ class EloquentType
     protected $hiddenFields;
 
     /**
+     * If fields should be camel cased.
+     *
+     * @var boolean
+     */
+    protected $camelCase = false;
+
+    /**
      * Create new instance of eloquent type.
      *
      * @param Model $model
@@ -42,6 +49,7 @@ class EloquentType
         $this->fields       = collect();
         $this->hiddenFields = collect($model->getHidden())->flip();
         $this->model        = $model;
+        $this->camelCase    = config('relay.camel_case', false);
     }
 
     /**
@@ -53,24 +61,26 @@ class EloquentType
     {
         $graphql = app('graphql');
         $name = $this->getName();
-        $description = $this->getDescription();
 
-        if ($fields = $graphql->cache()->get($name)) {
-            $this->fields = $fields;
-        } else {
-            if (method_exists($this->model, 'graphqlFields')) {
-                $this->eloquentFields();
-            }
-
-            $this->schemaFields();
-            $graphql->cache()->store($name, $this->fields);
+        if ($type = $graphql->cache()->get($name)) {
+            return $type;
         }
 
-        return new ObjectType([
+        if (method_exists($this->model, 'graphqlFields')) {
+            $this->eloquentFields();
+        }
+
+        $this->schemaFields();
+
+        $type = new ObjectType([
             'name'        => $name,
-            'description' => $description,
+            'description' => $this->getDescription(),
             'fields'      => $this->fields->toArray()
         ]);
+
+        $graphql->cache()->store($name, $type);
+
+        return $type;
     }
 
     /**
@@ -114,7 +124,7 @@ class EloquentType
                     $data['resolve'] = $method;
                 }
 
-                $this->fields->put($key, $data);
+                $this->addField($key, $field);
             }
         });
     }
@@ -161,9 +171,9 @@ class EloquentType
             $field['resolve'] = $method;
         }
 
-        $fieldName = $this->model->camelCase ? camel_case($name) : $name;
+        $fieldName = $this->camelCase ? camel_case($name) : $name;
 
-        $this->fields->put($fieldName, $field);
+        $this->addField($fieldName, $field);
     }
 
     /**
@@ -176,20 +186,21 @@ class EloquentType
     protected function resolveTypeByColumn($name, $colType)
     {
         $type = Type::string();
+        $type->name = $this->getName().'_String';
 
         if ($name === $this->model->getKeyName()) {
             $type = Type::id();
+            $type->name = $this->getName().'_ID';
         } elseif ($colType === 'integer') {
             $type = Type::int();
+            $type->name = $this->getName().'_Int';
         } elseif ($colType === 'float' || $colType === 'decimal') {
             $type = Type::float();
+            $type->name = $this->getName().'_Float';
         } elseif ($colType === 'boolean') {
             $type = Type::boolean();
+            $type->name = $this->getName().'_Boolean';
         }
-
-        // Seems a bit odd, but otherwise we'll get an error thrown stating
-        // that two types have the same name.
-        $type->name = $this->getName().' '.$type->name;
 
         return $type;
     }
@@ -218,6 +229,19 @@ class EloquentType
         }
 
         return 'Type::string()';
+    }
+
+    /**
+     * Add field to collection.
+     *
+     * @param string $name
+     * @param array $field
+     */
+    protected function addField($name, $field)
+    {
+        $name = $this->camelCase ? camel_case($name) : $name;
+
+        $this->fields->put($name, $field);
     }
 
     /**
