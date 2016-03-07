@@ -62,23 +62,22 @@ class EloquentType
         $graphql = app('graphql');
         $name = $this->getName();
 
-        if ($type = $graphql->cache()->get($name)) {
-            return $type;
+        if ($fields = $graphql->cache()->get($name)) {
+            $this->fields = $fields;
+        } else {
+            $this->schemaFields();
+            $graphql->cache()->store($name, $this->fields);
         }
 
         if (method_exists($this->model, 'graphqlFields')) {
             $this->eloquentFields();
         }
 
-        $this->schemaFields();
-
         $type = new ObjectType([
             'name'        => $name,
             'description' => $this->getDescription(),
             'fields'      => $this->fields->toArray()
         ]);
-
-        $graphql->cache()->store($name, $type);
 
         return $type;
     }
