@@ -56,6 +56,13 @@ class GraphQL
     protected $connectionInstances;
 
     /**
+     * Collection of connection edge instances.
+     *
+     * @var \Illuminate\Support\Collection
+     */
+    protected $edgeInstances;
+
+    /**
      * Instance of connection resolver.
      *
      * @var ConnectionResolver
@@ -83,6 +90,7 @@ class GraphQL
         $this->mutations = collect();
         $this->typeInstances = collect();
         $this->connectionInstances = collect();
+        $this->edgeInstances = collect();
     }
 
     /**
@@ -284,6 +292,19 @@ class GraphQL
     }
 
     /**
+     * Get instance of edge type.
+     *
+     * @param  string $name
+     * @return \GraphQL\Type\Definition\ObjectType|null
+     */
+    public function edge($name)
+    {
+        $this->checkType($name);
+
+        return $this->edgeInstances->get($name);
+    }
+
+    /**
      * Format error for output.
      *
      * @param  Error  $e
@@ -336,6 +357,7 @@ class GraphQL
         $type->setName(studly_case($connectionName));
         $type->setEdgeType($name);
         $instance = $type->toType();
+        $this->addEdge($instance, $name);
 
         $field = [
             'args' => RelayConnectionType::connectionArgs(),
@@ -348,6 +370,22 @@ class GraphQL
         }
 
         return $field;
+    }
+
+    /**
+     * Add edge instance.
+     *
+     * @param  ObjectType $type
+     * @param  string     $name
+     * @return void
+     */
+    public function addEdge(ObjectType $type, $name)
+    {
+        if ($edges = $type->getField('edges')) {
+            $type = $edges->getType()->getWrappedType();
+
+            $this->edgeInstances->put($name, $type);
+        }
     }
 
     /**

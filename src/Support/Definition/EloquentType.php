@@ -73,13 +73,11 @@ class EloquentType
             $this->eloquentFields();
         }
 
-        $type = new ObjectType([
+        return new ObjectType([
             'name'        => $name,
             'description' => $this->getDescription(),
             'fields'      => $this->fields->toArray()
         ]);
-
-        return $type;
     }
 
     /**
