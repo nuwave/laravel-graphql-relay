@@ -76,7 +76,7 @@ trait MutationTestTrait
     protected function availableOutputFields($mutationName)
     {
         $outputFields = ['clientMutationId'];
-        $mutations = config('graphql.schema.mutation');
+        $mutations = config('relay.schema.mutations');
         $mutation = app($mutations[$mutationName]);
 
         foreach ($mutation->type()->getFields() as $name => $field) {

@@ -133,14 +133,14 @@ class GraphQL
      */
     public function schema()
     {
-        $schema = config('graphql.schema');
+        $schema = config('relay.schema');
 
         $this->types->each(function ($type, $key) {
             $this->type($key);
         });
 
-        $queries = $this->queries->merge(array_get($schema, 'query', []));
-        $mutations = $this->mutations->merge(array_get($schema, 'mutation', []));
+        $queries = $this->queries->merge(array_get($schema, 'queries', []));
+        $mutations = $this->mutations->merge(array_get($schema, 'mutations', []));
 
         $queryTypes = $this->generateType($queries, ['name' => 'Query']);
         $mutationTypes = $this->generateType($mutations, ['name' => 'Mutation']);

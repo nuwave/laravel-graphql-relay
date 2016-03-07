@@ -32,7 +32,13 @@ return [
     |
     */
 
-    'schema_path' => 'Http/GraphQL/schema.php',
+    'schema' => [
+        'file'      => 'Http/GraphQL/schema.php',
+        'output'    => null,
+        'types'     => [],
+        'mutations' => [],
+        'queries'   => []
+    ],
 
     'model_path' => 'App\\Models',
     'camel_case' => false,

@@ -50,7 +50,7 @@ class NodeQuery extends GraphQLQuery
         // as well as the type's name.
         list($typeClass, $id) = $this->decodeGlobalId($args['id']);
 
-        foreach (config('graphql.types') as $type => $class) {
+        foreach (config('relay.schema.types') as $type => $class) {
             if ($typeClass == $class) {
                 $objectType = app($typeClass);
 

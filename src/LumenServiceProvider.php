@@ -61,7 +61,7 @@ class LumenServiceProvider extends BaseProvider
     {
         $this->registerRelayTypes();
 
-        require_once __DIR__ . '/../../../../app/' . config('relay.schema_path');
+        require_once __DIR__ . '/../../../../app/' . config('relay.schema.path');
 
         $this->setGraphQLConfig();
 
@@ -93,14 +93,14 @@ class LumenServiceProvider extends BaseProvider
     {
         $relay = $this->app['relay'];
 
-        $mutations = config('graphql.schema.mutation', []);
-        $queries = config('graphql.schema.query', []);
-        $types = config('graphql.types', []);
+        $mutations = config('relay.schema.mutations', []);
+        $queries = config('relay.schema.queries', []);
+        $types = config('relay.schema.types', []);
 
         config([
-            'graphql.schema.mutation' => array_merge($mutations, $relay->getMutations()->config()),
-            'graphql.schema.query' => array_merge($queries, $relay->getQueries()->config()),
-            'graphql.types' => array_merge($types, $relay->getTypes()->config())
+            'relay.schema.mutations' => array_merge($mutations, $relay->getMutations()->config()),
+            'relay.schema.queries' => array_merge($queries, $relay->getQueries()->config()),
+            'relay.schema.types' => array_merge($types, $relay->getTypes()->config())
         ]);
     }
 
@@ -111,7 +111,7 @@ class LumenServiceProvider extends BaseProvider
      */
     protected function initializeTypes()
     {
-        foreach (config('graphql.types') as $name => $type) {
+        foreach (config('relay.schema.types') as $name => $type) {
             $this->app['graphql']->addType($type, $name);
         }
     }
