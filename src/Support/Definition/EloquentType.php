@@ -3,6 +3,7 @@
 namespace Nuwave\Relay\Support\Definition;
 
 use ReflectionClass;
+use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\IDType;
@@ -17,6 +18,13 @@ class EloquentType
      * @var \Illuminate\Database\Eloquent\Model
      */
     protected $model;
+
+    /**
+     * Registered type name.
+     *
+     * @var string
+     */
+    protected $name;
 
     /**
      * Available fields.
@@ -44,8 +52,9 @@ class EloquentType
      *
      * @param Model $model
      */
-    public function __construct(Model $model)
+    public function __construct(Model $model, $name = '')
     {
+        $this->name         = $name;
         $this->fields       = collect();
         $this->hiddenFields = collect($model->getHidden())->flip();
         $this->model        = $model;
@@ -70,7 +79,12 @@ class EloquentType
         }
 
         if (method_exists($this->model, 'graphqlFields')) {
-            $this->eloquentFields();
+            $this->eloquentFields(collect($this->model->graphqlFields()));
+        }
+
+        if (method_exists($this->model, $this->getTypeMethod())) {
+            $method = $this->getTypeMethod();
+            $this->eloquentFields(collect($this->model->{$method}()));
         }
 
         return new ObjectType([
@@ -87,10 +101,15 @@ class EloquentType
      */
     public function rawFields()
     {
+        $this->schemaFields();
+
         if (method_exists($this->model, 'graphqlFields')) {
-            $this->eloquentFields();
-        } else {
-            $this->schemaFields();
+            $this->eloquentFields(collect($this->model->graphqlFields()));
+        }
+
+        if (method_exists($this->model, $this->getTypeMethod())) {
+            $method = $this->getTypeMethod();
+            $this->eloquentFields(collect($this->model->{$method}()));
         }
 
         return $this->fields->transform(function ($field, $key) {
@@ -103,12 +122,11 @@ class EloquentType
     /**
      * Convert eloquent defined fields.
      *
+     * @param  \Illuminate\Support\Collection
      * @return array
      */
-    public function eloquentFields()
+    public function eloquentFields(Collection $fields)
     {
-        $fields = collect($this->model->graphqlFields());
-
         $fields->each(function ($field, $key) {
             if (!$this->skipField($key)) {
                 $data = [];
@@ -280,6 +298,10 @@ class EloquentType
      */
     protected function getName()
     {
+        if ($this->name) {
+            return studly_case($this->name);
+        }
+
         return $this->model->name ?: ucfirst((new ReflectionClass($this->model))->getShortName());
     }
 
@@ -291,5 +313,15 @@ class EloquentType
     protected function getDescription()
     {
         return $this->model->description ?: null;
+    }
+
+    /**
+     * Get method name for type.
+     *
+     * @return string
+     */
+    protected function getTypeMethod()
+    {
+        return 'graphql'.$this->getName().'Fields';
     }
 }

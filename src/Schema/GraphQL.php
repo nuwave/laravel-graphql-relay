@@ -226,7 +226,7 @@ class GraphQL
             $type = app($type);
         }
 
-        $instance = $type instanceof Model ? (new EloquentType($type))->toType() : $type->toType();
+        $instance = $type instanceof Model ? (new EloquentType($type, $name))->toType() : $type->toType();
 
         $this->typeInstances->put($name, $instance);
 
