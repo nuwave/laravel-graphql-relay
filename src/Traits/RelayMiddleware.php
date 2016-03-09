@@ -23,4 +23,22 @@ trait RelayMiddleware
             $this->middleware($middleware);
         }
     }
+
+    /**
+     * Process GraphQL query.
+     *
+     * @param  Request $request
+     * @return Response
+     */
+    public function graphqlQuery(Request $request)
+    {
+        $query = $request->get('query');
+        $params = $request->get('variables');
+
+        if (is_string($params)) {
+            $params = json_decode($params, true);
+        }
+
+        return app('graphql')->query($query, $params);
+    }
 }
