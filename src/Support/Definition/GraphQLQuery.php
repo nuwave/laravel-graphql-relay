@@ -2,6 +2,7 @@
 
 namespace Nuwave\Relay\Support\Definition;
 
-class GraphQLQuery extends GraphQLField {
+class GraphQLQuery extends GraphQLField
+{
 
 }

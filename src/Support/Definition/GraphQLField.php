@@ -3,11 +3,15 @@
 namespace Nuwave\Relay\Support\Definition;
 
 use Illuminate\Support\Fluent;
-use Nuwave\Relay\Schema\GraphQL;
 use Illuminate\Support\DefinitionsFluent;
+use Nuwave\Relay\Schema\GraphQL;
+use Nuwave\Relay\Traits\GlobalIdTrait;
+use Nuwave\Relay\Support\ValidationError;
 
 class GraphQLField extends Fluent
 {
+    use GlobalIdTrait;
+
     /**
      * The container instance of GraphQL.
      *
@@ -57,6 +61,16 @@ class GraphQLField extends Fluent
     }
 
     /**
+     * Rules to apply to mutation.
+     *
+     * @return array
+     */
+    public function rules()
+    {
+        return [];
+    }
+
+    /**
      * Get the attributes of the field.
      *
      * @return array
@@ -75,20 +89,58 @@ class GraphQLField extends Fluent
     }
 
     /**
-     * Get the field resolver.
+     * Get rules for mutation.
+     *
+     * @return array
+     */
+    public function getRules()
+    {
+        $arguments = func_get_args();
+
+        return collect($this->args())
+            ->transform(function ($arg, $name) use ($arguments) {
+                if (isset($arg['rules'])) {
+                    if (is_callable($arg['rules'])) {
+                        return call_user_func_array($arg['rules'], $arguments);
+                    }
+                    return $arg['rules'];
+                }
+                return null;
+            })
+            ->merge(call_user_func_array([$this, 'rules'], $arguments))
+            ->reject(function ($arg) {
+                return is_null($arg);
+            })
+            ->toArray();
+    }
+
+    /**
+     * Get the mutation resolver.
      *
      * @return \Closure|null
      */
     protected function getResolver()
     {
-        if(!method_exists($this, 'resolve')) {
+        if (!method_exists($this, 'resolve')) {
             return null;
         }
 
         $resolver = array($this, 'resolve');
 
-        return function() use ($resolver) {
-            return call_user_func_array($resolver, func_get_args());
+        return function () use ($resolver) {
+            $arguments = func_get_args();
+            $rules = call_user_func_array([$this, 'getRules'], $arguments);
+
+            if (sizeof($rules)) {
+                $args = array_get($arguments, 1, []);
+                $validator = app('validator')->make($args, $rules);
+
+                if ($validator->fails()) {
+                    throw with(new ValidationError('validation'))->setValidator($validator);
+                }
+            }
+
+            return call_user_func_array($resolver, $arguments);
         };
     }
 
