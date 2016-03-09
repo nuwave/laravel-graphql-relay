@@ -3,7 +3,7 @@
 namespace Nuwave\Relay\Commands;
 
 use ReflectionClass;
-use Nuwave\Relay\Types\EloquentType;
+use Nuwave\Relay\Support\Definition\EloquentType;
 use Illuminate\Console\GeneratorCommand;
 use Symfony\Component\Console\Input\InputOption;
 
@@ -108,7 +108,7 @@ class TypeMakeCommand extends GeneratorCommand
         if (starts_with($model, $rootNamespace)) {
             $shortName = (new ReflectionClass($model))->getShortName();
         } else {
-            $model = config('relay.eloquent.path') . "\\" . $model;
+            $model = config('relay.model_path') . "\\" . $model;
         }
 
         $fields = $this->getTypeFields($model);
