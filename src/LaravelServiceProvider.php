@@ -27,6 +27,10 @@ class LaravelServiceProvider extends BaseProvider
         $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'relay');
 
         $this->registerSchema();
+
+        if (config('relay.controller')) {
+            include __DIR__.'/Http/routes.php';
+        }
     }
 
     /**

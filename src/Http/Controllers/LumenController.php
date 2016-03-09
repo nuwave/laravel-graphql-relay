@@ -1,11 +1,11 @@
 <?php
 
-namespace Devoted\Http\Controllers;
+namespace Nuwave\Relay\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Laravel\Lumen\Routing\Controller;
 
-class RelayController extends Controller
+class LumenController extends Controller
 {
     /**
      * Execute GraphQL query.

@@ -1,12 +1,25 @@
 <?php
 
-namespace Nuwave\Relay\Controllers;
+namespace Nuwave\Relay\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Nuwave\Relay\Traits\RelayMiddleware;
 
 class LaravelController extends Controller
 {
+    use RelayMiddleware;
+
+    /**
+     * Create new instance of grapql controller.
+     *
+     * @param Request $request
+     */
+    public function __construct(Request $request)
+    {
+        $this->setupQuery($request);
+    }
+
     /**
      * Execute GraphQL query.
      *

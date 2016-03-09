@@ -25,7 +25,7 @@ class DummyClass extends GraphQLField
      */
     public function type()
     {
-        // return GraphQL::type('type');
+        // return Type::string();
     }
 
     /**
