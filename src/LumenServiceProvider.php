@@ -61,7 +61,9 @@ class LumenServiceProvider extends BaseProvider
     {
         $this->registerRelayTypes();
 
-        require_once __DIR__ . '/../../../../app/' . config('relay.schema.path');
+        if (config('relay.schema.path')) {
+            require_once __DIR__ . '/../../../../app/' . config('relay.schema.path');
+        }
 
         $this->setGraphQLConfig();
 

@@ -108,7 +108,7 @@ class TypeMakeCommand extends GeneratorCommand
         if (starts_with($model, $rootNamespace)) {
             $shortName = (new ReflectionClass($model))->getShortName();
         } else {
-            $model = config('relay.model_path') . "\\" . $model;
+            $model = config('relay.eloquent.path') . "\\" . $model;
         }
 
         $fields = $this->getTypeFields($model);

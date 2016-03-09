@@ -33,7 +33,7 @@ return [
     */
 
     'schema' => [
-        'file'      => 'Http/GraphQL/schema.php',
+        'file'      => null,
         'output'    => null,
         'types'     => [],
         'mutations' => [],

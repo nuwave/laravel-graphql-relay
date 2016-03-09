@@ -61,7 +61,9 @@ class LaravelServiceProvider extends BaseProvider
      */
     protected function registerSchema()
     {
-        require_once app_path(config('relay.schema.path'));
+        if (config('relay.schema.path')) {
+            require_once app_path(config('relay.schema.path'));
+        }
 
         $this->setGraphQLConfig();
 
