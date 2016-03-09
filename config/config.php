@@ -33,7 +33,7 @@ return [
     */
 
     'schema' => [
-        'file'      => null,
+        'path'      => null,
         'output'    => null,
         'types'     => [],
         'mutations' => [],
