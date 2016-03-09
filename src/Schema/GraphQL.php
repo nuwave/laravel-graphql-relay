@@ -323,7 +323,7 @@ class GraphQL
 
         $previous = $e->getPrevious();
         if ($previous && $previous instanceof ValidationError) {
-            $error['validation'] = $previous->getValidatorMessage();
+            $error['validation'] = $previous->getValidatorMessages();
         }
 
         return $error;

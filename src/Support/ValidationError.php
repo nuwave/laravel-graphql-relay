@@ -3,28 +3,26 @@
 namespace Nuwave\Relay\Support;
 
 use GraphQL\Error;
-use Illuminate\Validation\Validator;
 
 class ValidationError extends Error
 {
     /**
      * The validator.
      *
-     * @var Validator
+     * @var \Illuminate\Validation\Validator
      */
     protected $validator;
 
     /**
-     * ValidationError constructor.
+     * Set validator instance.
      *
-     * @param \Exception|string $message
-     * @param Validator         $validator
+     * @param mixed $validator
      */
-    public function __construct($message, Validator $validator)
+    public function setValidator($validator)
     {
-        parent::__construct($message);
-
         $this->validator = $validator;
+
+        return $this;
     }
 
     /**

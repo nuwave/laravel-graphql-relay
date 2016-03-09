@@ -3,39 +3,48 @@
 namespace Nuwave\Relay\Support\Definition;
 
 use Illuminate\Support\Collection;
+use Nuwave\Relay\Support\ValidationError;
 use Nuwave\Relay\Schema\GraphQL;
+use Nuwave\Relay\Traits\GlobalIdTrait;
 
 class GraphQLMutation extends GraphQLField
 {
+    use GlobalIdTrait;
+
     /**
-     * Get the validation rules.
+     * Rules to apply to mutation.
+     *
+     * @return array
+     */
+    protected function rules()
+    {
+        return [];
+    }
+
+    /**
+     * Get rules for mutation.
      *
      * @return array
      */
     public function getRules()
     {
-        $collection = new Collection($this->args());
-
         $arguments = func_get_args();
 
-        return $collection
-            ->transform(function ($arg) use ($arguments) {
+        return collect($this->args())
+            ->transform(function ($arg, $name) use ($arguments) {
                 if (isset($arg['rules'])) {
-                    if (is_callable($arg['rules'])) {
+                    if (is_callable($args['rules'])) {
                         return call_user_func_array($arg['rules'], $arguments);
-                    } else {
-                        return $arg['rules'];
                     }
+                    return $arg['rules'];
                 }
-
                 return null;
-            })
-            ->merge(call_user_func_array([$this, 'rules'], $arguments))
+            })->merge(call_user_func_array([$this, 'rules'], $arguments))
             ->toArray();
     }
 
     /**
-     * Get the field resolver.
+     * Get the mutation resolver.
      *
      * @return \Closure|null
      */
@@ -49,40 +58,18 @@ class GraphQLMutation extends GraphQLField
 
         return function () use ($resolver) {
             $arguments = func_get_args();
+            $rules = call_user_func_array([$this, 'getRules'], $arguments);
 
-            $this->validate($arguments);
+            if (sizeof($rules)) {
+                $args = array_get($arguments, 1, []);
+                $validator = app('validator')->make($args, $rules);
+
+                if ($validator->fails()) {
+                    throw with(new ValidationError('validation'))->setValidator($validator);
+                }
+            }
 
             return call_user_func_array($resolver, $arguments);
         };
-    }
-
-    /**
-     * The validation rules for this mutation.
-     *
-     * @return array
-     */
-    protected function rules()
-    {
-        return [];
-    }
-
-    /**
-     * Validate relay mutation.
-     *
-     * @param  array $args
-     * @throws ValidationError
-     * @return void
-     */
-    protected function validate(array $args)
-    {
-        $rules = $this->getRules(...$args);
-
-        if (sizeof($rules)) {
-            $validator = app('validator')->make($args['input'], $rules);
-
-            if ($validator->fails()) {
-                throw with(new ValidationError('Validation failed', $validator));
-            }
-        }
     }
 }
