@@ -65,9 +65,9 @@ class LaravelServiceProvider extends BaseProvider
             require_once app_path(config('relay.schema.path'));
         }
 
-        $this->setGraphQLConfig();
-
         $this->registerRelayTypes();
+
+        $this->setGraphQLConfig();
 
         $this->initializeTypes();
     }
