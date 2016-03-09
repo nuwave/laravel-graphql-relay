@@ -13,24 +13,6 @@ class GraphQLField extends Fluent
     use GlobalIdTrait;
 
     /**
-     * The container instance of GraphQL.
-     *
-     * @var \Laravel\Lumen\Application|mixed
-     */
-    protected $graphQL;
-
-    /**
-     * GraphQLType constructor.
-     *
-     */
-    public function __construct()
-    {
-        parent::__construct();
-
-        $this->graphQL = app('graphql');
-    }
-
-    /**
      * Arguments this field accepts.
      *
      * @return array
@@ -61,7 +43,7 @@ class GraphQLField extends Fluent
     }
 
     /**
-     * Rules to apply to mutation.
+     * Rules to apply to field.
      *
      * @return array
      */
@@ -89,15 +71,20 @@ class GraphQLField extends Fluent
     }
 
     /**
-     * Get rules for mutation.
+     * Get rules for field.
      *
      * @return array
      */
     public function getRules()
     {
         $arguments = func_get_args();
+        $args = $this->args();
 
-        return collect($this->args())
+        if ($this instanceof RelayMutation) {
+            $args = $this->inputFields();
+        }
+
+        return collect($args)
             ->transform(function ($arg, $name) use ($arguments) {
                 if (isset($arg['rules'])) {
                     if (is_callable($arg['rules'])) {
@@ -115,7 +102,7 @@ class GraphQLField extends Fluent
     }
 
     /**
-     * Get the mutation resolver.
+     * Get the field resolver.
      *
      * @return \Closure|null
      */
@@ -132,8 +119,8 @@ class GraphQLField extends Fluent
             $rules = call_user_func_array([$this, 'getRules'], $arguments);
 
             if (sizeof($rules)) {
-                $args = array_get($arguments, 1, []);
-                $validator = app('validator')->make($args, $rules);
+                $input = $this->getInput($arguments);
+                $validator = app('validator')->make($input, $rules);
 
                 if ($validator->fails()) {
                     throw with(new ValidationError('validation'))->setValidator($validator);
@@ -142,6 +129,17 @@ class GraphQLField extends Fluent
 
             return call_user_func_array($resolver, $arguments);
         };
+    }
+
+    /**
+     * Get input for validation.
+     *
+     * @param  array  $arguments
+     * @return array
+     */
+    protected function getInput(array $arguments)
+    {
+        return array_get($arguments, 1, []);
     }
 
     /**
