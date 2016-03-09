@@ -40,6 +40,7 @@ return [
         'queries'   => []
     ],
 
+    'controller' => 'Nuwave\Relay\Http\Controllers\LaravelController@query',
     'model_path' => 'App\\Models',
     'camel_case' => false,
 ];
