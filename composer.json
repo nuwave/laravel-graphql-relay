@@ -26,6 +26,7 @@
     },
     "require": {
         "webonyx/graphql-php": "~0.5",
-        "illuminate/console": "5.*"
+        "illuminate/console": "5.*",
+        "doctrine/dbal": "^2.5"
     }
 }
