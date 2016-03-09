@@ -7,7 +7,7 @@ use GraphQL\Type\Definition\Type;
 use Nuwave\Relay\Support\Definition\GraphQLField;
 use Nuwave\Relay\Traits\GlobalIdTrait;
 
-class DummyClass extends Field
+class DummyClass extends GraphQLField
 {
     /**
      * Field attributes.

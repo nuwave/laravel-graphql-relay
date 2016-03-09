@@ -6,7 +6,7 @@ use GraphQL;
 use GraphQL\Type\Definition\Type;
 use Nuwave\Relay\Support\Definition\GraphQLQuery;
 
-class DummyClass extends Query
+class DummyClass extends GraphQLQuery
 {
     /**
      * Type query returns.
