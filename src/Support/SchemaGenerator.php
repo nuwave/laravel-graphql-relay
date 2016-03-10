@@ -14,7 +14,7 @@ class SchemaGenerator
      */
     public function execute($version = '4.12')
     {
-        $query = file_get_contents(dirname(__DIR__) . '/assets/introspection-'. $version .'.txt');
+        $query = file_get_contents(realpath(__DIR__.'/../../assets').'/introspection-'. $version .'.txt');
         $data = GraphQL::query($query);
 
         if (isset($data['data']['__schema'])) {
