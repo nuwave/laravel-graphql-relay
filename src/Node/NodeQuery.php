@@ -3,12 +3,12 @@
 namespace Nuwave\Relay\Node;
 
 use GraphQL;
-use Nuwave\Relay\GlobalIdTrait;
+use Nuwave\Relay\Traits\GlobalIdTrait;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\ResolveInfo;
-use Folklore\GraphQL\Support\Query;
+use Nuwave\Relay\Support\Definition\GraphQLQuery;
 
-class NodeQuery extends Query
+class NodeQuery extends GraphQLQuery
 {
     use GlobalIdTrait;
 
@@ -46,27 +46,14 @@ class NodeQuery extends Query
      */
     public function resolve($root, array $args, ResolveInfo $info)
     {
-        return $this->getModel($args);
-    }
-
-    /**
-     * Get associated model.
-     *
-     * @param  array $args
-     * @return Illuminate\Database\Eloquent\Model
-     */
-    protected function getModel(array $args)
-    {
         // Here, we decode the base64 id and get the id of the type
         // as well as the type's name.
-        //
         list($typeClass, $id) = $this->decodeGlobalId($args['id']);
 
-        // Types must be registered in the graphql.php config file.
-        //
-        foreach (config('graphql.types') as $type => $class) {
+        foreach (config('relay.schema.types') as $type => $class) {
             if ($typeClass == $class) {
                 $objectType = app($typeClass);
+
                 $model = $objectType->resolveById($id);
 
                 if (is_array($model)) {

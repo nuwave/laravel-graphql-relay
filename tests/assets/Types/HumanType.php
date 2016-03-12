@@ -2,7 +2,7 @@
 
 namespace Nuwave\Relay\Tests\Assets\Types;
 
-use Nuwave\Relay\Types\RelayType;
+use Nuwave\Relay\Support\Definition\RelayType;
 use Nuwave\Relay\Tests\Assets\Data\StarWarsData;
 use GraphQL\Type\Definition\Type;
 

@@ -76,7 +76,7 @@ trait MutationTestTrait
     protected function availableOutputFields($mutationName)
     {
         $outputFields = ['clientMutationId'];
-        $mutations = config('graphql.schema.mutation');
+        $mutations = config('relay.schema.mutations');
         $mutation = app($mutations[$mutationName]);
 
         foreach ($mutation->type()->getFields() as $name => $field) {
@@ -84,12 +84,39 @@ trait MutationTestTrait
                 $objectType = $field->getType();
 
                 if ($objectType instanceof ObjectType) {
-                    $fields = array_keys($objectType->getFields());
+                    $fields = $this->includeOutputFields($objectType);
                     $outputFields[] = $name . '{'. implode(',', $fields) .'}';
                 }
             }
         }
 
         return $outputFields;
+    }
+
+    /**
+     * Determine if output fields should be included.
+     *
+     * @param  mixed $objectType
+     * @return boolean
+     */
+    protected function includeOutputFields(ObjectType $objectType)
+    {
+        $fields = [];
+
+        foreach ($objectType->getFields() as $name => $field) {
+            $type = $field->getType();
+
+            if ($type instanceof ObjectType) {
+                $config = $type->config;
+
+                if (isset($config['name']) && preg_match('/Connection$/', $config['name'])) {
+                    continue;
+                }
+            }
+
+            $fields[] = $name;
+        }
+
+        return $fields;
     }
 }

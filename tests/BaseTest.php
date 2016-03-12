@@ -32,8 +32,7 @@ abstract class BaseTest extends \Orchestra\Testbench\TestCase
     protected function getPackageProviders($app)
     {
         return [
-            \Folklore\GraphQL\GraphQLServiceProvider::class,
-            \Nuwave\Relay\ServiceProvider::class,
+            \Nuwave\Relay\LaravelServiceProvider::class,
         ];
     }
 
@@ -46,7 +45,8 @@ abstract class BaseTest extends \Orchestra\Testbench\TestCase
     protected function getPackageAliases($app)
     {
         return [
-            'GraphQL' => \Folklore\GraphQL\Support\Facades\GraphQL::class,
+            'GraphQL' => \Nuwave\Relay\Facades\GraphQL::class,
+            'Relay'   => \Nuwave\Relay\Facades\Relay::class,
         ];
     }
 
@@ -58,24 +58,19 @@ abstract class BaseTest extends \Orchestra\Testbench\TestCase
      */
     protected function getEnvironmentSetUp($app)
     {
-        $app['config']->set('graphql', [
-            'prefix' => 'graphql',
-            'routes' => '/',
-            'controllers' => '\Folklore\GraphQL\GraphQLController@query',
-            'middleware' => [],
+        $app['config']->set('relay', [
             'schema' => [
-                'query' => [
+                'path' => 'schema/schema.php',
+                'queries' => [
                     'node' => \Nuwave\Relay\Node\NodeQuery::class,
                     'humanByName' => \Nuwave\Relay\Tests\Assets\Queries\HumanByName::class,
                 ],
-                'mutation' => [
-
-                ]
-            ],
-            'types' => [
-                'node' => \Nuwave\Relay\Node\NodeType::class,
-                'pageInfo' => \Nuwave\Relay\Types\PageInfoType::class,
-                'human' => \Nuwave\Relay\Tests\Assets\Types\HumanType::class,
+                'mutations' => [],
+                'types' => [
+                    'node' => \Nuwave\Relay\Node\NodeType::class,
+                    'pageInfo' => \Nuwave\Relay\Support\Definition\PageInfoType::class,
+                    'human' => \Nuwave\Relay\Tests\Assets\Types\HumanType::class,
+                ],
             ]
         ]);
     }

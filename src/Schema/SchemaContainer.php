@@ -3,8 +3,9 @@
 namespace Nuwave\Relay\Schema;
 
 use Closure;
+use GraphQL\Language\Parser as GraphQLParser;
+use GraphQL\Language\Source;
 use Nuwave\Relay\Schema\FieldCollection as Collection;
-use Nuwave\Relay\Schema\Field;
 
 class SchemaContainer
 {
@@ -44,22 +45,157 @@ class SchemaContainer
     protected $namespace = '';
 
     /**
+     * Schema parser.
+     *
+     * @var Parser
+     */
+    public $parser;
+
+    /**
+     * Middleware to be applied to query.
+     *
+     * @var array
+     */
+    public $middleware = [];
+
+    /**
+     * Connections present in query.
+     *
+     * @var array
+     */
+    public $connections = [];
+
+    /**
      * Create new instance of Mutation container.
      *
-     * @return void
+     * @param Parser $parser
      */
-    public function __construct()
+    public function __construct(Parser $parser)
     {
+        $this->parser = $parser;
+
         $this->mutations = new Collection;
         $this->queries = new Collection;
         $this->types = new Collection;
     }
 
     /**
+     * Set up the graphql request.
+     *
+     * @param  $query string
+     * @return void
+     */
+    public function setupRequest($query = 'GraphGL request', $operation = 'query')
+    {
+        $source = new Source($query);
+        $ast    = GraphQLParser::parse($source);
+
+        if (isset($ast->definitions[0])) {
+            $d            = $ast->definitions[0];
+            $operation    = $d->operation ?: 'query';
+            $selectionSet = $d->selectionSet->selections;
+
+            $this->parseSelections($selectionSet, $operation);
+        }
+    }
+
+    /**
+     * Check to see if field is a parent.
+     *
+     * @param  string  $name
+     * @return boolean
+     */
+    public function isParent($name)
+    {
+        foreach ($this->connections as $connection) {
+            if ($this->hasPath($connection, $name)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get list of connections in query that belong
+     * to parent.
+     *
+     * @param  string $parent
+     * @param  array  $connections
+     * @return array
+     */
+    public function connectionsInRequest($parent, array $connections)
+    {
+        $queryConnections = [];
+
+        foreach ($this->connections as $connection) {
+            if ($this->hasPath($connection, $parent) && isset($connections[$connection->name])) {
+                $queryConnections[] = $connections[$connection->name];
+            }
+        }
+
+        return $queryConnections;
+    }
+
+    /**
+     * Get arguments of connection.
+     *
+     * @param  string $name
+     * @return array
+     */
+    public function connectionArguments($name)
+    {
+        $connection = array_first($this->connections, function ($key, $connection) use ($name) {
+            return $connection->name == $name;
+        });
+
+        if ($connection) {
+            return $connection->arguments;
+        }
+
+        return [];
+    }
+
+    /**
+     * Determine if connection has parent in it's path.
+     *
+     * @param  Connection $connection
+     * @param  string     $parent
+     * @return boolean
+     */
+    protected function hasPath(Connection $connection, $parent)
+    {
+        return preg_match("/{$parent}./", $connection->path);
+    }
+
+    /**
+     * Add connection to collection.
+     *
+     * @param  string $name
+     * @param  string $namespace
+     * @return Field
+     */
+    public function connection($name, $namespace)
+    {
+        $edgeType = $this->createField($name.'Edge', $namespace);
+
+        $this->types->push($edgeType);
+
+        $connectionType = $this->createField($name.'Connection', $namespace);
+
+        $this->types->push($connectionType);
+
+        return [
+            'connectionType' => $connectionType,
+            'edgeType' => $edgeType,
+        ];
+    }
+
+    /**
      * Add mutation to collection.
      *
      * @param string $name
-     * @param array $options
+     * @param array $namespace
      * @return Field
      */
     public function mutation($name, $namespace)
@@ -75,7 +211,7 @@ class SchemaContainer
      * Add query to collection.
      *
      * @param string $name
-     * @param array $options
+     * @param array $namespace
      * @return Field
      */
     public function query($name, $namespace)
@@ -104,38 +240,9 @@ class SchemaContainer
     }
 
     /**
-     * Get class name.
-     *
-     * @param  string $namespace
-     * @return string
-     */
-    protected function getClassName($namespace)
-    {
-        return empty(trim($this->namespace)) ? $namespace : trim($this->namespace, '\\') . '\\' . $namespace;
-    }
-
-    /**
-     * Get field and attach necessary middleware.
-     *
-     * @param  string $name
-     * @param  string $namespace
-     * @return Field
-     */
-    protected function createField($name, $namespace)
-    {
-        $field = new Field($name, $this->getClassName($namespace));
-
-        if ($this->hasMiddlewareStack()) {
-            $field->addMiddleware($this->middlewareStack);
-        }
-
-        return $field;
-    }
-
-    /**
      * Group child elements.
      *
-     * @param  array   $middleware
+     * @param  array   $attributes
      * @param  Closure $callback
      * @return void
      */
@@ -256,6 +363,94 @@ class SchemaContainer
     public function findType($name)
     {
         return $this->getTypes()->pull($name);
+    }
+
+    /**
+     * Get the middlware for the query.
+     *
+     * @return array
+     */
+    public function middleware()
+    {
+        return $this->middleware;
+    }
+
+    /**
+     * Get connections for the query.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function connections()
+    {
+        return collect($this->connections);
+    }
+
+    /**
+     * Get connection paths to eager load.
+     *
+     * @return array
+     */
+    public function eagerLoad()
+    {
+        return $this->connections()->pluck('path')->toArray();
+    }
+
+    /**
+     * Initialize schema.
+     *
+     * @param  array $selectionSet
+     * @return void
+     */
+    protected function parseSelections(array $selectionSet = [], $operation = '')
+    {
+        foreach ($selectionSet as $selection) {
+            if ($this->parser->isField($selection)) {
+                $schema = $this->find($selection->name->value, $operation);
+
+                if (isset($schema['middleware']) && !empty($schema['middleware'])) {
+                    $this->middleware = array_merge($this->middleware, $schema['middleware']);
+                }
+
+                if (isset($selection->selectionSet) && !empty($selection->selectionSet->selections)) {
+                    $this->connections = array_merge(
+                        $this->connections,
+                        $this->parser->getConnections(
+                            $selection->selectionSet->selections,
+                            $selection->name->value
+                        )
+                    );
+                }
+            }
+        }
+    }
+
+    /**
+     * Get class name.
+     *
+     * @param  string $namespace
+     * @return string
+     */
+    protected function getClassName($namespace)
+    {
+        return empty(trim($this->namespace)) ? $namespace : trim($this->namespace, '\\') . '\\' . $namespace;
+    }
+
+    /**
+     * Get field and attach necessary middleware.
+     *
+     * @param  string $name
+     * @param  string $namespace
+     * @return Field
+     */
+    protected function createField($name, $namespace)
+    {
+        $field = new Field($name, $this->getClassName($namespace));
+
+        if ($this->hasMiddlewareStack()) {
+            $field->addMiddleware($this->middlewareStack);
+        }
+
+        return $field;
     }
 
     /**

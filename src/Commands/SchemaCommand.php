@@ -3,7 +3,7 @@
 namespace Nuwave\Relay\Commands;
 
 use Illuminate\Console\Command;
-use Nuwave\Relay\SchemaGenerator;
+use Nuwave\Relay\Support\SchemaGenerator;
 
 class SchemaCommand extends Command
 {
@@ -19,7 +19,7 @@ class SchemaCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Generate a new GraphQL schema.';
+    protected $description = 'Generate a new Relay schema.';
 
     /**
      * Relay schema generator.
@@ -31,7 +31,7 @@ class SchemaCommand extends Command
     /**
      * Create a new command instance.
      *
-     * @return void
+     * @param SchemaGenerator $generator
      */
     public function __construct(SchemaGenerator $generator)
     {

@@ -3,9 +3,9 @@
 namespace Nuwave\Relay\Tests\Assets;
 
 use GraphQL\Type\Definition\ResolveInfo;
-use Nuwave\Relay\Mutations\MutationWithClientId;
+use Nuwave\Relay\Support\Definition\RelayMutation;
 
-class UpdateHeroNameQuery extends MutationWithClientId
+class UpdateHeroNameQuery extends RelayMutation
 {
     /**
      * Name of Mutation.

@@ -1,14 +1,14 @@
 <?php
 
-namespace Nuwave\Relay\Controllers;
+namespace Nuwave\Relay\Http\Controllers;
 
-use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
+use Laravel\Lumen\Routing\Controller;
 
-class RelayController extends Controller
+class LumenController extends Controller
 {
     /**
-     * Excecute GraphQL query.
+     * Execute GraphQL query.
      *
      * @param  Request $request
      * @return Response
@@ -16,6 +16,7 @@ class RelayController extends Controller
     public function query(Request $request)
     {
         $query = $request->get('query');
+
         $params = $request->get('variables');
 
         if (is_string($params)) {
