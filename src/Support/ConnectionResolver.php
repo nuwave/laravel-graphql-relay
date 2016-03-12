@@ -58,7 +58,7 @@ class ConnectionResolver
         if ($collection instanceof Model) {
             // Selects only the fields requested, instead of select *
             $items = method_exists($collection, $name)
-                ? $collection->$name()->select(...$this->getSelectFields($info))->get()
+                ? $collection->{$name}()->get() //->select(...$this->getSelectFields($info))->get()
                 : $collection->getAttribute($name);
             return $items;
         } elseif (is_object($collection) && method_exists($collection, 'get')) {
