@@ -56,7 +56,10 @@ class ConnectionResolver
         $items = [];
 
         if ($collection instanceof Model) {
-            // Selects only the fields requested, instead of select *
+            if (in_array($name, array_keys($collection->getRelations()))) {
+                return $collection->{$name};
+            }
+
             $items = method_exists($collection, $name)
                 ? $collection->{$name}()->get() //->select(...$this->getSelectFields($info))->get()
                 : $collection->getAttribute($name);
