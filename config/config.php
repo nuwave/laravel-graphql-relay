@@ -35,9 +35,6 @@ return [
     'schema' => [
         'path'      => null,
         'output'    => null,
-        'types'     => [],
-        'mutations' => [],
-        'queries'   => []
     ],
 
     'controller' => 'Nuwave\Relay\Http\Controllers\LaravelController@query',

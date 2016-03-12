@@ -37,4 +37,23 @@ Publish the configuration file
 php artisan vendor:publish --provider="Nuwave\Relay\LaravelServiceProvider"
 ```
 
+Create a ```schema.php``` file and add the path to the config
+
+```
+// config/relay.php
+// ...
+'schema' => [
+    'path'      => 'Http/schema.php',
+    'output'    => null,
+],
+```
+
+To generate a ```schema.json``` file (used with the Babel Relay Plugin):
+
+```
+php artisan relay:schema
+```
+
+*You can customize the output path in the ```relay.php``` config file under ```schema.output```*
+
 For additional documentation, look through the docs folder or read the Wiki.
