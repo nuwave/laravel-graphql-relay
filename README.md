@@ -10,7 +10,7 @@ You must then modify your composer.json file and run composer update to include 
 
 ```json
 "require": {
-    "nuwave/laravel-graphql-relay": "0.1.*"
+    "nuwave/laravel-graphql-relay": "0.2.*"
 }
 ```
 
@@ -26,21 +26,52 @@ Add the service provider to your ```app/config.php``` file
 Nuwave\Relay\ServiceProvider::class
 ```
 
-Add the following entries to your ```config/graphql.php``` file ([laravel-graphql configuration file](https://github.com/Folkloreatelier/laravel-graphql#installation-1))
+Add the Relay facade to your ```app/config.php``` file
 
 ```php
-'schema' => [
-    'query' => [
-        // ...
-        'node' => Nuwave\Relay\Node\NodeQuery::class,
-    ],
-    // ...
-],
-'types' => [
-    // ...
-    'node' => Nuwave\Relay\Node\NodeType::class,
-    'pageInfo' => Nuwave\Relay\Types\PageInfoType::class,
-]
+'Relay' => Nuwave\Relay\Facades\Relay::class,
+```
+
+Publish the configuration file
+
+```php
+php artisan vendor:publish --provider="Nuwave\Relay\ServiceProvider"
+```
+
+Add your Mutations, Queries and Types to the ```config/relay.php``` file
+
+```php
+// Example:
+
+return [
+    'schema' => function () {
+        // Added by default
+        Relay::group(['namespace' => 'Nuwave\\Relay'], function () {
+            Relay::group(['namespace' => 'Node'], function () {
+                Relay::query('node', 'NodeQuery');
+                Relay::type('node', 'NodeType');
+            });
+
+            Relay::type('pageInfo', 'Types\\PageInfoType');
+        });
+
+        // Your mutations, queries and types
+        Relay::group(['namespace' => 'App\\Http\\GraphQL'], function () {
+            Relay::group(['namespace' => 'Mutations'], function () {
+                Relay::mutation('createUser', 'CreateUserMutation');
+            });
+
+            Relay::group(['namespace' => 'Queries', function () {
+                Relay::query('userQuery', 'UserQuery');
+            });
+
+            Relay::group(['namespace' => 'Types'], function () {
+                Relay::type('user', 'UserType');
+                Relay::type('event', 'EventType');
+            });
+        });
+    }
+];
 ```
 
 To generate a ```schema.json``` file (used with the [Babel Relay Plugin](https://facebook.github.io/relay/docs/guides-babel-plugin.html#content))
