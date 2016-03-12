@@ -2,6 +2,10 @@
 
 Use Facebook [GraphQL](http://facebook.github.io/graphql/) with [React Relay](https://facebook.github.io/relay/). This package extends graphql-php to work with Laravel and is currently **a work in progress**. You can reference what specifications GraphQL needs to provide to work with Relay in the [documentation](https://facebook.github.io/relay/docs/graphql-relay-specification.html#content).
 
+Although this package no longer depends on [laraval-graphql](https://github.com/Folkloreatelier/laravel-graphql), it laid the foundation for this package which likely wouldn't exist without it. It is also a great alternative if you are using GraphQL w/o support for Relay.
+
+Because this package is still in the early stages, breaking changes will occur. We will keep the documentation updated with the current release. Please feel free to contribute, PR are absolutely welcome!
+
 ### Installation ###
 
 You must then modify your composer.json file and run composer update to include the latest version of the package in your project.
