@@ -378,11 +378,21 @@ class SchemaContainer
     /**
      * Get connections for the query.
      *
-     * @return array
+     * @return \Illuminate\Support\Collection
      */
     public function connections()
     {
-        return $this->connections;
+        return collect($this->connections);
+    }
+
+    /**
+     * Get connection paths to eager load.
+     *
+     * @return array
+     */
+    public function eagerLoad()
+    {
+        return $this->connections()->pluck('path')->toArray();
     }
 
     /**
