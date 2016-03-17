@@ -356,8 +356,6 @@ php artisan relay:make:type \MyVendor\SecondPackage\AllMyGraphQLTypes\AvatarType
 > \MyVendor\SecondPackage\AllMyGraphQLTypes\AvatarType
 
 
-**the examples above work with all types of generators (types, mutations, queries, fields)**
-
 
 ## Schema File
 
