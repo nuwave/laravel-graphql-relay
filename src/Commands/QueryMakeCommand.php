@@ -2,9 +2,9 @@
 
 namespace Nuwave\Relay\Commands;
 
-use Illuminate\Console\GeneratorCommand;
+use Symfony\Component\Console\Input\InputOption;
 
-class QueryMakeCommand extends GeneratorCommand
+class QueryMakeCommand extends MakeCommandBase
 {
     /**
      * The name and signature of the console command.
@@ -45,6 +45,22 @@ class QueryMakeCommand extends GeneratorCommand
      */
     protected function getDefaultNamespace($rootNamespace)
     {
-        return config('relay.namespaces.queries');
+        $modifiedNamespace = parent::getDefaultNamespace($rootNamespace);
+        if($modifiedNamespace) return $modifiedNamespace;
+        else return config('relay.namespaces.queries');
     }
+
+    /**
+     * Get the console command options.
+     *
+     * @return array
+     */
+    protected function getOptions()
+    {
+        return [
+            ['model', null, InputOption::VALUE_OPTIONAL, 'Generate a Eloquent GraphQL type.'],
+            ['packaged', null, InputOption::VALUE_OPTIONAL, '(Boolean) Should the Model package\'s namespace\GraphQL\Types be used?'],
+        ];
+    }
+
 }
