@@ -18,32 +18,32 @@ You must then modify your composer.json file and run composer update to include 
 
 Or you can use the composer require command from your terminal.
 
-```
+```bash
 composer require nuwave/laravel-graphql-relay
 ```
 
 Add the service provider to your ```app/config.php``` file
 
-```
+```php
 Nuwave\Relay\LaravelServiceProvider::class
 ```
 
 Add the Relay & GraphQL facade to your app/config.php file
 
-```
+```php
 'GraphQL' => Nuwave\Relay\Facades\GraphQL::class,
 'Relay' => Nuwave\Relay\Facades\Relay::class,
 ```
 
 Publish the configuration file
 
-```
+```bash
 php artisan vendor:publish --provider="Nuwave\Relay\LaravelServiceProvider"
 ```
 
 Create a ```schema.php``` file and add the path to the config
 
-```
+```php
 // config/relay.php
 // ...
 'schema' => [
@@ -54,7 +54,7 @@ Create a ```schema.php``` file and add the path to the config
 
 To generate a ```schema.json``` file (used with the Babel Relay Plugin):
 
-```
+```bash
 php artisan relay:schema
 ```
 
