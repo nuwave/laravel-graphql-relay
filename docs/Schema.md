@@ -1,6 +1,8 @@
 ## Schema
 
-### Types
+### Generators
+
+#### Types
 
 Creating a Type:
 
@@ -65,7 +67,7 @@ class UserType extends RelayType
 }
 ```
 
-### Queries
+#### Queries
 
 Create a Query:
 
@@ -124,7 +126,7 @@ class ViewerQuery extends GraphQLQuery
 
 ```
 
-### Mutations
+#### Mutations
 
 Create a mutation:
 
@@ -225,7 +227,7 @@ class UpdatePassword extends RelayMutation
 
 ```
 
-### Custom Fields
+#### Custom Fields
 
 Create a custom field:
 
@@ -300,7 +302,62 @@ class AvatarField extends GraphQLField
 }
 ```
 
-### Schema File
+
+#### Generator Options
+
+All of the generators above can take the following additional options:
+
+| option    |   description    |   required    |
+| --------- | ---------------- |   --------    |
+| name      |  the name of the file we want to generate. If the name is not namespaced the generator will use the namespaces defined in config/relay.php otherwise the namespaced location (location must exist and be a package or a folder under App |  yes  |
+| model     |  the eloquent model connected with this type/query/mutation or field (it will be used to create basic crud operations in your newly generated file |  no  |
+| packaged  |  (boolean: default = 0) If true and a model is given, the file will be created in a subfolder GraphQL/{Type/Query/...} but in the namespace of the models package root |   no  |
+
+**Command Signature:**
+
+```bash
+php artisan relay:make:{field|type|query|mutation} {name} --model="{ModelClass}" --packaged={0|1}
+```
+
+**Basic:**
+
+```bash
+php artisan relay:make:type AvatarType
+```
+> will create a type AvatarType in the namespace specified in your config/relay.php file.
+> App\Http\GraphQL\Types\AvatarType
+
+
+**Adding a model:**
+
+```bash
+php artisan relay:make:type AvatarType --model="\MyVendor\MyPackage\Models\Avatar"
+```
+
+> By adding a model class the generator will look the model fields and insert them in the file to save you the time of copying them in there.
+> App\Http\GraphQL\Types\AvatarType
+
+
+**Putting the new file in the same package as the model: (--packaged=1)**
+
+```bash
+php artisan relay:make:type AvatarType --model="\MyVendor\MyPackage\Models\Avatar" --packaged=1
+```
+> will create a type AvatarType in:
+> \MyVendor\MyPackage\GraphQL\Types\AvatarType
+
+
+**Defining a custom namespace for the new file:**
+
+```bash
+php artisan relay:make:type \MyVendor\SecondPackage\AllMyGraphQLTypes\AvatarType --model="\MyVendor\MyPackage\Models\Avatar"
+```
+> will create a type AvatarType in:
+> \MyVendor\SecondPackage\AllMyGraphQLTypes\AvatarType
+
+
+
+## Schema File
 
 The ```schema.php``` file you create is similar to Laravel's ```routes.php``` file. It used to declare your Types, Mutations and Queries to be used by GraphQL. Similar to routes, you can group your schema by namespace as well as add middleware to your Queries and Mutations.
 
