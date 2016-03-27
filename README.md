@@ -22,7 +22,7 @@ Or you can use the composer require command from your terminal.
 composer require nuwave/laravel-graphql-relay
 ```
 
-Add the service provider to your ```app/config.php``` file
+Add the service provider to your ```config/app.php``` file
 
 ```php
 Nuwave\Relay\LaravelServiceProvider::class
