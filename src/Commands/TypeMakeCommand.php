@@ -4,10 +4,9 @@ namespace Nuwave\Relay\Commands;
 
 use ReflectionClass;
 use Nuwave\Relay\Support\Definition\EloquentType;
-use Illuminate\Console\GeneratorCommand;
 use Symfony\Component\Console\Input\InputOption;
 
-class TypeMakeCommand extends GeneratorCommand
+class TypeMakeCommand extends MakeCommandBase
 {
     /**
      * The name and signature of the console command.
@@ -41,13 +40,11 @@ class TypeMakeCommand extends GeneratorCommand
     }
 
     /**
-     * Get the default namespace for the class.
+     * Get the fallback namespace from config
      *
-     * @param  string  $rootNamespace
      * @return string
      */
-    protected function getDefaultNamespace($rootNamespace)
-    {
+    public function getConfigNamespace() {
         return config('relay.namespaces.types');
     }
 
@@ -78,6 +75,7 @@ class TypeMakeCommand extends GeneratorCommand
     {
         return [
             ['model', null, InputOption::VALUE_OPTIONAL, 'Generate a Eloquent GraphQL type.'],
+            ['packaged', null, InputOption::VALUE_OPTIONAL, '(Boolean) Should the Model package\'s namespace\GraphQL\Types be used?'],
         ];
     }
 
@@ -105,7 +103,7 @@ class TypeMakeCommand extends GeneratorCommand
         $shortName = $model;
         $rootNamespace = $this->laravel->getNamespace();
 
-        if (starts_with($model, $rootNamespace)) {
+        if (starts_with($model, $rootNamespace) || substr($model, 0, 1) == "\\") {
             $shortName = (new ReflectionClass($model))->getShortName();
         } else {
             $model = config('relay.model_path') . "\\" . $model;
@@ -128,4 +126,5 @@ class TypeMakeCommand extends GeneratorCommand
 
         return (new EloquentType($model))->rawFields();
     }
+
 }

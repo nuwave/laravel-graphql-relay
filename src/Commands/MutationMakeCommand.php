@@ -2,9 +2,9 @@
 
 namespace Nuwave\Relay\Commands;
 
-use Illuminate\Console\GeneratorCommand;
+use Symfony\Component\Console\Input\InputOption;
 
-class MutationMakeCommand extends GeneratorCommand
+class MutationMakeCommand extends MakeCommandBase
 {
     /**
      * The name and signature of the console command.
@@ -38,13 +38,24 @@ class MutationMakeCommand extends GeneratorCommand
     }
 
     /**
-     * Get the default namespace for the class.
+     * Get the fallback namespace from config
      *
-     * @param  string  $rootNamespace
      * @return string
      */
-    protected function getDefaultNamespace($rootNamespace)
-    {
+    public function getConfigNamespace() {
         return config('relay.namespaces.mutations');
+    }
+
+    /**
+     * Get the console command options.
+     *
+     * @return array
+     */
+    protected function getOptions()
+    {
+        return [
+            ['model', null, InputOption::VALUE_OPTIONAL, 'Generate a Eloquent GraphQL type.'],
+            ['packaged', null, InputOption::VALUE_OPTIONAL, '(Boolean) Should the Model package\'s namespace\GraphQL\Types be used?'],
+        ];
     }
 }
