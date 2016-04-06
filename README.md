@@ -41,7 +41,7 @@ Publish the configuration file
 php artisan vendor:publish --provider="Nuwave\Relay\LaravelServiceProvider"
 ```
 
-Create a ```schema.php``` file and add the path to the config
+Create a ```schema.php``` file and add the path to the config.  See the [Schema](https://github.com/nuwave/laravel-graphql-relay/wiki/3.-Schema#schema-file) wiki page for more information on `schema.php`.
 
 ```php
 // config/relay.php
