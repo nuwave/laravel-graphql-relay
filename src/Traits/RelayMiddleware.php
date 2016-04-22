@@ -16,11 +16,13 @@ trait RelayMiddleware
      */
     public function setupQuery(Request $request)
     {
-        $relay = app('relay');
-        $relay->setupRequest($request->get('query'));
+        if ($query = $request->get('query')) {
+            $relay = app('relay');
+            $relay->setupRequest($query);
 
-        foreach ($relay->middleware() as $middleware) {
-            $this->middleware($middleware);
+            foreach ($relay->middleware() as $middleware) {
+                $this->middleware($middleware);
+            }
         }
     }
 
