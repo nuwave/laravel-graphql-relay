@@ -41,7 +41,7 @@ class ConnectionResolver
         return new Paginator(
             $items,
             count($items),
-            count($items)
+            (count($items) > 0 ? count($items) : 1)
         );
     }
 
