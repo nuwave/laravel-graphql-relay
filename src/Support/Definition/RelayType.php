@@ -87,6 +87,28 @@ abstract class RelayType extends GraphQLType
     }
 
     /**
+     * Decode cursor from query arguments.
+     *
+     * @param  array  $args
+     * @return integer
+     */
+    protected function decodeCursor(array $args)
+    {
+        return isset($args['after']) ? $this->getCursorId($args['after']) : 0;
+    }
+
+    /**
+     * Get id from encoded cursor.
+     *
+     * @param  string $cursor
+     * @return integer
+     */
+    protected function getCursorId($cursor)
+    {
+        return (int)$this->decodeRelayId($cursor);
+    }
+
+    /**
      * Get list of available fields for type.
      *
      * @return array
