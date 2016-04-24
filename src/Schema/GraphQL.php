@@ -264,10 +264,11 @@ class GraphQL
      *
      * @param  string $name
      * @param  Closure|string|null $resolve
+     * @param  array $args
      * @param  boolean $fresh
      * @return mixed
      */
-    public function connection($name, $resolve = null, $fresh = false)
+    public function connection($name, $resolve = null, $args = [], $fresh = false)
     {
         $this->checkType($name);
 
@@ -284,7 +285,7 @@ class GraphQL
             return $field;
         }
 
-        $field = $this->connectionField($name, $resolve);
+        $field = $this->connectionField($name, $resolve, $args);
 
         $this->connectionInstances->put($name, $field);
 
@@ -347,9 +348,10 @@ class GraphQL
      *
      * @param  string $name
      * @param  Closure|null $resolve
+     * @param  array $args
      * @return array
      */
-    public function connectionField($name, $resolve = null)
+    public function connectionField($name, $resolve = null, $args = [])
     {
         $type = new RelayConnectionType();
         $connectionName = (!preg_match('/Connection$/', $name)) ? $name.'Connection' : $name;
@@ -360,7 +362,7 @@ class GraphQL
         $this->addEdge($instance, $name);
 
         $field = [
-            'args' => RelayConnectionType::connectionArgs(),
+            'args' => array_merge(RelayConnectionType::connectionArgs(), $args),
             'type' => $instance,
             'resolve' => $resolve
         ];
