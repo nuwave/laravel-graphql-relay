@@ -53,8 +53,14 @@ abstract class RelayType extends GraphQLType
     {
         return collect($this->connections())->transform(function ($edge, $name) {
             if (!isset($edge['resolve'])) {
-                $edge['resolve'] = function ($root, array $args, ResolveInfo $info) use ($name) {
-                    return GraphQL::resolveConnection($root, $args, $info, $name);
+                $edge['resolve'] = function ($root, array $args, ResolveInfo $info) use ($name, $edge) {
+                    $connection = GraphQL::resolveConnection($root, $args, $info, $name);
+
+                    if (isset($edge['load'])) {
+                        $this->autoLoad($connection, $edge, $name);
+                    }
+
+                    return $connection;
                 };
             }
 
@@ -63,6 +69,32 @@ abstract class RelayType extends GraphQLType
             return $edge;
 
         })->toArray();
+    }
+
+    /**
+     * Auto load the fields connection(s).
+     *
+     * @param  Paginator $collection
+     * @param  array     $edge
+     * @param  string    $name
+     * @return void
+     */
+    protected function autoLoad(Paginator $collection, array $edge, $name)
+    {
+        $relay = app('relay');
+
+        if ($relay->isParent($name)) {
+            if ($typeClass = $this->typeFromSchema($edge['type'])) {
+                $type = app($typeClass);
+                $connections = $relay->connectionsInRequest($name, $type->connections());
+                foreach ($connections as $key => $connection) {
+                    if (isset($connection['load'])) {
+                        $load = $connection['load'];
+                        $load($collection, $relay->connectionArguments($key));
+                    }
+                }
+            }
+        }
     }
 
     /**
