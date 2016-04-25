@@ -28,10 +28,12 @@ class GraphQLType extends Fluent
     {
         $attributes = array_merge(
             $this->attributes, [
-                'fields' =>  $this->getFields(),
+                'fields' =>  function () {
+                    return $this->fields();
+                }
             ]);
 
-        if(sizeof($this->interfaces())) {
+        if (sizeof($this->interfaces())) {
             $attributes['interfaces'] = $this->interfaces();
         }
 
