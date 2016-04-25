@@ -82,7 +82,7 @@ class ConnectionResolver
      */
     protected function getSelectFields(ResolveInfo $info)
     {
-        $camel = config('relay.eloquent.camel_case');
+        $camel = config('relay.camel_case');
 
         return collect($info->getFieldSelection(4)['edges']['node'])
             ->reject(function ($value) {

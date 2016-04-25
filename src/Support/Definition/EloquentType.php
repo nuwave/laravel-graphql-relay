@@ -58,7 +58,7 @@ class EloquentType
         $this->fields       = collect();
         $this->hiddenFields = collect($model->getHidden())->flip();
         $this->model        = $model;
-        $this->camelCase    = config('relay.eloquent.camel_case', false);
+        $this->camelCase    = config('relay.camel_case', false);
     }
 
     /**
