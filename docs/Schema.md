@@ -230,7 +230,7 @@ class UpdatePassword extends RelayMutation
 Create a custom field:
 
 ```bash
-php artisan relay:make:field AvatarField
+php artisan relay:make:field Avatar
 ```
 
 ```php
@@ -243,7 +243,7 @@ use GraphQL\Type\Definition\Type;
 use Nuwave\Relay\Support\Definition\GraphQLField;
 use Nuwave\Relay\Traits\GlobalIdTrait;
 
-class AvatarField extends GraphQLField
+class Avatar extends GraphQLField
 {
     /**
      * Field attributes.
@@ -298,6 +298,26 @@ class AvatarField extends GraphQLField
         return 'http://placehold.it/'.$root->id.'/'.$width.'x'.$height;
     }
 }
+```
+
+**To use the field in your Type(s):**
+
+```php
+<?php
+// TypeClass ...
+
+/**
+ * Available fields of Type.
+ *
+ * @return array
+ */
+public function relayFields()
+{
+    return [
+        'avatar' => Avatar::field()
+    ]
+}
+
 ```
 
 ### Schema File

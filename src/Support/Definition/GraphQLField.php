@@ -153,6 +153,16 @@ class GraphQLField extends Fluent
     }
 
     /**
+     * Transform into field array.
+     *
+     * @return array
+     */
+    public static function field()
+    {
+        return (new static)->toArray();
+    }
+
+    /**
      * Dynamically retrieve the value of an attribute.
      *
      * @param  string  $key
