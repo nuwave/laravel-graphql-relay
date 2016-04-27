@@ -98,11 +98,12 @@ class GraphQL
      *
      * @param  string $query
      * @param  array $variables
+     * @param  mixed $rootValue
      * @return array
      */
-    public function query($query, $variables = [])
+    public function query($query, $variables = [], $rootValue = null)
     {
-        $result = $this->queryAndReturnResult($query, $variables);
+        $result = $this->queryAndReturnResult($query, $variables, $rootValue);
 
         if (!empty($result->errors)) {
             return [
@@ -119,11 +120,12 @@ class GraphQL
      *
      * @param  string $query
      * @param  array $variables
+     * @param  mixed $rootValue
      * @return array
      */
-    public function queryAndReturnResult($query, $variables = [])
+    public function queryAndReturnResult($query, $variables = [], $rootValue = null)
     {
-        return GraphQLBase::executeAndReturnResult($this->schema(), $query, null, $variables);
+        return GraphQLBase::executeAndReturnResult($this->schema(), $query, $rootValue, $variables);
     }
 
     /**
