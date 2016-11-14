@@ -73,7 +73,7 @@ abstract class RelayType extends GraphQLType
      */
     public function getIdentifier($obj)
     {
-        return $obj->id;
+        return $obj->getKey();
     }
 
     /**
