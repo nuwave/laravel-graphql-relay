@@ -1,4 +1,6 @@
-# laravel-grapql-relay #
+# This project is deprecated in favor of https://github.com/nuwave/lighthouse
+
+# laravel-grapql-relay
 
 Use Facebook [GraphQL](http://facebook.github.io/graphql/) with [React Relay](https://facebook.github.io/relay/). This package extends graphql-php to work with Laravel and is currently **a work in progress**. You can reference what specifications GraphQL needs to provide to work with Relay in the [documentation](https://facebook.github.io/relay/docs/graphql-relay-specification.html#content).
 
